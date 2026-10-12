@@ -3,6 +3,10 @@
 Plataforma web para gestionar voluntarios, niños beneficiarios, escuelas y cartas de Navidad.
 Documentación de diseño en [`docs/`](docs/).
 
+<p align="center">
+  <img width="225" height="225" alt="image" src="https://github.com/user-attachments/assets/d0fa246f-259d-4ec5-8467-b680b2a6e29f" />
+</p>
+
 ## Requisitos
 - Python 3.12
 - MySQL 8.0+
