@@ -12,6 +12,7 @@ from app.core.errors import register_error_handlers
 from app.core.logging import setup_logging
 from app.db.session import dispose_engine
 from app.db.startup import run_startup_tasks
+from app.modules.auth.router import router as auth_router
 from app.modules.health.router import router as health_router
 from app.shared.spa import mount_spa
 
@@ -56,7 +57,7 @@ def create_app() -> FastAPI:
     app.middleware("http")(security_headers)
     register_error_handlers(app)
     app.include_router(health_router, prefix=settings.API_PREFIX)
-    # TODO(1.3): app.include_router(auth_router, prefix=settings.API_PREFIX)
+    app.include_router(auth_router, prefix=settings.API_PREFIX)
     mount_spa(app, settings.spa_dir)  # SIEMPRE AL FINAL (ruta comodín)
     return app
 
