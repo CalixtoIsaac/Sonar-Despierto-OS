@@ -12,6 +12,7 @@ ignore = ["S101"]           # assert permitido (pruebas)
 
 [tool.ruff.lint.isort]
 known-first-party = ["app", "scripts"]
+known-third-party = ["alembic"]  # backend/alembic/ no es un paquete propio
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
