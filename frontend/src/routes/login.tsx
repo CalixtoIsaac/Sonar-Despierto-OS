@@ -1,15 +1,27 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { toast } from "sonner";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 import { Logo } from "@/components/sd/ui";
 import { LoginForm } from "@/features/auth/login-form";
+import { useAuth } from "@/lib/auth/auth-context";
+import { safeRedirect } from "@/lib/auth/guards";
 import { usePageTitle } from "@/lib/page-title";
 
+interface LoginSearch {
+  redirect?: string;
+}
+
 export const Route = createFileRoute("/login")({
+  validateSearch: (search: Record<string, unknown>): LoginSearch =>
+    typeof search["redirect"] === "string" ? { redirect: search["redirect"] } : {},
+  beforeLoad: ({ context, search }) => {
+    // Con sesión no se muestra el login. Tras iniciar sesión, router.invalidate() pasa por aquí
+    if (context.auth.isAuthenticated) throw redirect({ href: safeRedirect(search.redirect) });
+  },
   component: Login,
 });
 
 function Login() {
   usePageTitle("Iniciar sesión");
+  const auth = useAuth();
 
   return (
     <div className="grid min-h-screen lg:grid-cols-2">
@@ -32,10 +44,10 @@ function Login() {
           </div>
           <h1 className="text-3xl">Bienvenido de nuevo</h1>
           <p className="mt-1 text-muted-foreground">Ingresa con tu correo y contraseña.</p>
+          {/* Los errores de la API (401, 403, 429, red) llegan como ApiError y se muestran tal cual */}
           <LoginForm
-            onSubmit={async () => {
-              // TODO(1.5): conectar con POST /api/v1/auth/login
-              toast.info("La conexión con el servidor se habilita en la subtarea 1.5");
+            onSubmit={async ({ email, password }) => {
+              await auth.login(email, password);
             }}
           />
           <div className="mt-8 rounded-2xl bg-accent p-4 text-center">

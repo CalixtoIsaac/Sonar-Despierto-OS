@@ -1,9 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { UserCog } from "lucide-react";
 import { PageHeader, Panel, Pill } from "@/components/sd/ui";
+import { requireAdmin } from "@/lib/auth/guards";
 import { usePageTitle } from "@/lib/page-title";
 
 export const Route = createFileRoute("/app/usuarios")({
+  beforeLoad: ({ context }) => requireAdmin(context.auth),
   component: Users,
 });
 

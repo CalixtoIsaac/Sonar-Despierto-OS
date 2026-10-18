@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { PageHeader, Panel, Pill } from "@/components/sd/ui";
-import { DEV_PREVIEW_USER } from "@/dev/preview-user";
+import { useAuth } from "@/lib/auth/auth-context";
 import { MODULE_INFO, ROLE_LABEL } from "@/lib/domain/access";
 import { usePageTitle } from "@/lib/page-title";
 
@@ -8,9 +8,16 @@ export const Route = createFileRoute("/app/perfil")({
   component: Profile,
 });
 
+const lastLoginFormat = new Intl.DateTimeFormat("es-MX", {
+  dateStyle: "long",
+  timeStyle: "short",
+  timeZone: "America/Mexico_City",
+});
+
 function Profile() {
   usePageTitle("Mi perfil");
-  const user = DEV_PREVIEW_USER; // TODO(1.5): usuario de la sesión
+  const { user } = useAuth();
+  if (!user) return null;
 
   return (
     <>
@@ -35,6 +42,12 @@ function Profile() {
             ) : (
               user.modules.map((m) => <Pill key={m}>{MODULE_INFO[m].label}</Pill>)
             )}
+          </dd>
+          <dt className="font-semibold text-muted-foreground">Último acceso</dt>
+          <dd>
+            {user.last_login_at
+              ? lastLoginFormat.format(new Date(user.last_login_at))
+              : "Este es tu primer acceso"}
           </dd>
         </dl>
       </Panel>

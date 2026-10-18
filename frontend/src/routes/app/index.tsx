@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { PageHeader, Panel, Pill } from "@/components/sd/ui";
-import { DEV_PREVIEW_USER } from "@/dev/preview-user";
+import { DataState, PageHeader, Panel, Pill } from "@/components/sd/ui";
+import { useAuth } from "@/lib/auth/auth-context";
 import { MODULE_INFO } from "@/lib/domain/access";
 import { visibleMenu } from "@/lib/navigation";
 import { usePageTitle } from "@/lib/page-title";
@@ -11,7 +11,8 @@ export const Route = createFileRoute("/app/")({
 
 function Home() {
   usePageTitle("Inicio");
-  const user = DEV_PREVIEW_USER; // TODO(1.5): usuario de la sesión
+  const { user } = useAuth();
+  if (!user) return null;
   const moduleItems = visibleMenu(user).filter((item) => item.module);
 
   return (
@@ -21,11 +22,10 @@ function Home() {
         desc="Estos son los módulos a los que tienes acceso."
       />
       <Panel title="Tus módulos">
-        {moduleItems.length === 0 ? (
-          <p className="text-muted-foreground">
-            Aún no tienes módulos asignados. Pide al administrador que te los asigne.
-          </p>
-        ) : (
+        <DataState
+          isEmpty={moduleItems.length === 0}
+          emptyText="Aún no tienes módulos asignados. Pide al administrador que te habilite los que necesites."
+        >
           <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
             {moduleItems.map((item) => {
               const info = item.module ? MODULE_INFO[item.module] : undefined;
@@ -53,7 +53,7 @@ function Home() {
               );
             })}
           </div>
-        )}
+        </DataState>
       </Panel>
     </>
   );

@@ -1,6 +1,12 @@
 import { QueryClient } from "@tanstack/react-query";
 import { createRouter } from "@tanstack/react-router";
+import type { AuthContextValue } from "@/lib/auth/auth-context";
 import { routeTree } from "./routeTree.gen";
+
+export interface RouterContext {
+  queryClient: QueryClient;
+  auth: AuthContextValue;
+}
 
 export const queryClient = new QueryClient({
   defaultOptions: {
@@ -11,7 +17,8 @@ export const queryClient = new QueryClient({
 export function createAppRouter() {
   return createRouter({
     routeTree,
-    context: { queryClient },
+    // auth se inyecta en <RouterProvider context={{ auth }}> (main.tsx)
+    context: { queryClient, auth: undefined as unknown as AuthContextValue },
     defaultPreload: "intent",
     scrollRestoration: true,
   });

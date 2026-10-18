@@ -1,21 +1,20 @@
-import { createFileRoute, Outlet, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Outlet } from "@tanstack/react-router";
 import { AppShell } from "@/components/sd/shell";
-import { DEV_PREVIEW_USER } from "@/dev/preview-user";
+import { useAuth } from "@/lib/auth/auth-context";
+import { requireAuth } from "@/lib/auth/guards";
 import { visibleMenu } from "@/lib/navigation";
 
-// TODO(1.5): sustituir DEV_PREVIEW_USER por la sesión real y agregar las guardas de ruta
 export const Route = createFileRoute("/app")({
+  beforeLoad: ({ context, location }) => requireAuth(context.auth, location),
   component: AppLayout,
 });
 
 function AppLayout() {
-  const navigate = useNavigate();
+  const auth = useAuth();
+  // La guarda garantiza la sesión; si se cierra, router.invalidate() redirige a /login
+  if (!auth.user) return null;
   return (
-    <AppShell
-      user={DEV_PREVIEW_USER}
-      items={visibleMenu(DEV_PREVIEW_USER)}
-      onLogout={() => void navigate({ to: "/login" })}
-    >
+    <AppShell user={auth.user} items={visibleMenu(auth.user)} onLogout={() => void auth.logout()}>
       <Outlet />
     </AppShell>
   );
