@@ -1,5 +1,7 @@
 # Documento de Requisitos Técnicos (PRD) - Sistema de Gestión *Soñar Despierto*
 
+> ⚠️ **Actualización 2026-10-17:** stack vigente del MVP local: React + Vite + Tailwind (ADR-0001), FastAPI + SQLite (ADR-0002), ejecutable local con modo LAN opcional, sin requerir internet (ADR-0003), y acceso solo para personal con roles ADMIN/OPERADOR (ADR-0004). Ver [`adr/`](adr/README.md) y [`Roadmap_Fases.md`](Roadmap_Fases.md).
+
 ---
 
 ## 1. Resumen del Producto

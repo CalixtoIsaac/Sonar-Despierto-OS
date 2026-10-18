@@ -1,5 +1,7 @@
 # Pantallas y Estructura de UI (MVP) — Soñar Despierto
 
+> ⚠️ **Actualización 2026-10-17:** el frontend es una SPA React basada en el diseño de Lovable (ADR-0001); las rutas `.html` se reinterpretan como rutas `/app/...` (ver `fases/Fase_1_Prompts_Task_Document.md` §3.9). En el MVP local solo acceden ADMIN y OPERADOR (ADR-0004): las pantallas de voluntario y tutor con cuenta propia (P02, P06, P07, P19–P21, P24) quedan para la fase de nube y su función la opera el personal. Donde haya contradicción, mandan los ADR de [`adr/`](adr/README.md).
+
 > **Versión:** 1.0 · **Frontend:** HTML5 + CSS3 + JavaScript Vanilla (multipágina) · **Idioma:** Español
 > **Documentos relacionados:** `API_Spec.md` (endpoints que consume cada pantalla), `Modelo_Datos.md`
 
