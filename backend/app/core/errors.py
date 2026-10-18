@@ -1,4 +1,5 @@
 """Formato de error estándar (ver API_Spec.md §1.5)."""
+
 import logging
 
 from fastapi import FastAPI, Request, status
@@ -34,12 +35,16 @@ HTTP_CODES = {
 def register_error_handlers(app: FastAPI) -> None:
     @app.exception_handler(AppError)
     async def app_error_handler(_: Request, exc: AppError):
-        return JSONResponse(status_code=exc.status_code, content=_body(exc.code, exc.message, exc.details))
+        return JSONResponse(
+            status_code=exc.status_code, content=_body(exc.code, exc.message, exc.details)
+        )
 
     @app.exception_handler(StarletteHTTPException)
     async def http_error_handler(_: Request, exc: StarletteHTTPException):
         code, msg = HTTP_CODES.get(exc.status_code, ("HTTP_ERROR", str(exc.detail)))
-        return JSONResponse(status_code=exc.status_code, content=_body(code, msg), headers=exc.headers)
+        return JSONResponse(
+            status_code=exc.status_code, content=_body(code, msg), headers=exc.headers
+        )
 
     @app.exception_handler(RequestValidationError)
     async def validation_handler(_: Request, exc: RequestValidationError):
@@ -55,4 +60,6 @@ def register_error_handlers(app: FastAPI) -> None:
     @app.exception_handler(Exception)
     async def unhandled_handler(_: Request, exc: Exception):
         logger.exception("Error no controlado")
-        return JSONResponse(status_code=500, content=_body("INTERNAL_ERROR", "Ocurrió un error inesperado."))
+        return JSONResponse(
+            status_code=500, content=_body("INTERNAL_ERROR", "Ocurrió un error inesperado.")
+        )

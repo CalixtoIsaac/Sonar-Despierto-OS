@@ -1,3 +1,5 @@
+-- SOLO REFERENCIA PARA LA FUTURA MIGRACIÓN A LA NUBE (MySQL 8).
+-- El MVP local usa SQLite y no necesita este script (ver docs/adr/0002-sqlite-local-con-orm-portable.md).
 -- Ejecutar UNA vez como root en MySQL 8 (MySQL Workbench o consola).
 CREATE DATABASE IF NOT EXISTS sonar_despierto
   CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;

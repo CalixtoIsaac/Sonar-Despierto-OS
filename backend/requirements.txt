@@ -1,9 +1,11 @@
 fastapi==0.115.6
 uvicorn[standard]==0.32.1
 sqlalchemy==2.0.36
+alembic==1.14.0
+pydantic-settings==2.7.0
+email-validator==2.2.0
+bcrypt==4.2.1
+PyJWT==2.10.1
+# TODO(F1): temporales mientras el código crea el motor con la URL de MySQL; la subtarea 1.2 los mueve a requirements-mysql.txt
 pymysql==1.1.1
 cryptography==44.0.0
-pydantic-settings==2.7.0
-alembic==1.14.0
-pytest==8.3.4
-httpx==0.28.1
