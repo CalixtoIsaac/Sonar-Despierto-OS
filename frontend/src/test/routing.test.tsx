@@ -1,12 +1,14 @@
 import { QueryClient } from "@tanstack/react-query";
 import { createMemoryHistory, createRouter } from "@tanstack/react-router";
+import type { AuthContextValue } from "@/lib/auth/auth-context";
 import { NAV_ITEMS } from "@/lib/navigation";
 import { routeTree } from "@/routeTree.gen";
 
 function leafRoute(path: string) {
   const router = createRouter({
     routeTree,
-    context: { queryClient: new QueryClient() },
+    // matchRoutes no ejecuta beforeLoad: basta un contexto de auth mínimo
+    context: { queryClient: new QueryClient(), auth: {} as AuthContextValue },
     history: createMemoryHistory({ initialEntries: [path] }),
   });
   const matches = router.matchRoutes(path, {});

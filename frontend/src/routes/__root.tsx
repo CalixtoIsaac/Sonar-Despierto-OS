@@ -1,4 +1,3 @@
-import type { QueryClient } from "@tanstack/react-query";
 import {
   createRootRouteWithContext,
   Link,
@@ -8,6 +7,7 @@ import {
 } from "@tanstack/react-router";
 import { Toaster } from "@/components/ui/sonner";
 import { Button } from "@/components/ui/button";
+import type { RouterContext } from "@/router";
 
 function NotFoundComponent() {
   return (
@@ -55,7 +55,7 @@ function ErrorComponent({ error, reset }: ErrorComponentProps) {
   );
 }
 
-export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
+export const Route = createRootRouteWithContext<RouterContext>()({
   component: () => (
     <>
       <Outlet />
