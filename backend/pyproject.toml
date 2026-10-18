@@ -1,0 +1,19 @@
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+extend-exclude = ["alembic/versions"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "S", "SIM"]
+ignore = ["S101"]           # assert permitido (pruebas)
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S105", "S106"]   # contraseñas de prueba en literales
+
+[tool.ruff.lint.isort]
+known-first-party = ["app", "scripts"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+addopts = "-q"

@@ -1,4 +1,5 @@
 """Configuración central: lee variables del archivo .env."""
+
 from functools import lru_cache
 from pathlib import Path
 
@@ -18,7 +19,7 @@ class Settings(BaseSettings):
 
     DATABASE_URL: str = "mysql+pymysql://sonar_app:CAMBIAR@localhost:3306/sonar_despierto"
 
-    JWT_SECRET_KEY: str = "CAMBIAR"
+    JWT_SECRET_KEY: str = "CAMBIAR"  # noqa: S105  marcador, no es un secreto (la 1.2 lo reescribe)
     JWT_ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
@@ -28,7 +29,7 @@ class Settings(BaseSettings):
     MAX_UPLOAD_MB: int = 5
 
     FIRST_ADMIN_EMAIL: str = "admin@sonardespierto.org"
-    FIRST_ADMIN_PASSWORD: str = "CAMBIAR"
+    FIRST_ADMIN_PASSWORD: str = "CAMBIAR"  # noqa: S105  marcador, no es un secreto
 
     @property
     def is_dev(self) -> bool:

@@ -1,8 +1,41 @@
-.env
+# Python
+__pycache__/
+*.py[cod]
 .venv/
 venv/
-__pycache__/
-*.pyc
 .pytest_cache/
-backend/uploads/*
-!backend/uploads/.gitkeep
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Configuración local y secretos
+.env
+*.env.local
+secret.key
+CREDENCIALES_INICIALES.txt
+
+# Datos locales: BD SQLite, logs, archivos subidos (ADR-0003)
+.data/
+*.db
+*.db-wal
+*.db-shm
+*.sqlite3
+logs/
+*.log
+
+# Node / frontend
+node_modules/
+frontend/dist/
+frontend/.tanstack/
+coverage/
+
+# Empaquetado (PyInstaller)
+build/
+dist/
+
+# Editor / sistema operativo
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+Thumbs.db

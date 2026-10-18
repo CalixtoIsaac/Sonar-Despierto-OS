@@ -1,5 +1,7 @@
 # Arquitectura y Convenciones del Proyecto — Soñar Despierto
 
+> ⚠️ **Actualización 2026-10-17:** este documento está parcialmente reemplazado por los ADR de [`adr/`](adr/README.md): frontend React + Vite + Tailwind basado en Lovable (ADR-0001), SQLite en el MVP local (ADR-0002), ejecución local con lanzador y modo LAN (ADR-0003), roles ADMIN/OPERADOR (ADR-0004), backend por módulos de dominio `app/modules/<modulo>/` (ADR-0005) y sesión JWT (ADR-0007). La estructura y el orden de construcción vigentes están en [`Roadmap_Fases.md`](Roadmap_Fases.md) y [`fases/`](fases/). Donde haya contradicción, mandan los ADR.
+
 > **Propósito:** fijar la estructura de carpetas, configuración, convenciones y orden de construcción **antes** de generar código, para que todo el código (escrito por personas o por IA) sea consistente.
 > **Documentos relacionados:** `Requerimientos_Tecnicos.md`, `Modelo_Datos.md`, `API_Spec.md`, `Pantallas_UI.md`
 

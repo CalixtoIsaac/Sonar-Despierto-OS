@@ -1,5 +1,7 @@
 # Modelo de Datos / Esquema de Base de Datos — Soñar Despierto
 
+> ⚠️ **Actualización 2026-10-17:** en el MVP local el motor es **SQLite** con reglas de portabilidad (ADR-0002); el DDL MySQL de §8 queda como referencia para la nube. Roles `ADMIN`/`OPERADOR` con la tabla `user_module_permissions` y `users.token_version` (ADR-0004, ADR-0007). `volunteer_profiles` y `tutor_profiles` pasarán a ser entidades independientes sin cuenta, y las FK a `users` de padrinos y tutores cambiarán (tabla de cambios en ADR-0004); esta sección se actualizará al inicio de las Fases 3 y 4. Donde haya contradicción, mandan los ADR de [`adr/`](adr/README.md).
+
 > **Versión:** 1.0 (MVP) · **Motor:** MySQL 8.0+ · **Engine:** InnoDB · **Charset:** `utf8mb4` / `utf8mb4_0900_ai_ci`
 > **Documento relacionado:** `Requerimientos_Tecnicos.md` (PRD), `API_Spec.md`, `Arquitectura_y_Convenciones.md`
 

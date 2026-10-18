@@ -1,5 +1,7 @@
 # Especificación de API (MVP) — Soñar Despierto
 
+> ⚠️ **Actualización 2026-10-17:** en el MVP local no hay registro público (`POST /auth/register` pasa a la fase de nube) y los roles son `ADMIN`/`OPERADOR` con permisos por módulo (ADR-0004). La autenticación vigente (refresh de 12 h, `logout`, `change-password` con respuesta 200 y nuevos tokens, `PASSWORD_CHANGE_REQUIRED`) está en ADR-0007 y en `fases/Fase_1_Prompts_Task_Document.md` §3.7. Cada fase actualizará su sección de este documento. Donde haya contradicción, mandan los ADR de [`adr/`](adr/README.md).
+
 > **Versión:** 1.0 · **Backend:** FastAPI · **Auth:** JWT (Bearer) · **Base URL:** `/api/v1`
 > **Documentos relacionados:** `Modelo_Datos.md`, `Pantallas_UI.md`, `Arquitectura_y_Convenciones.md`
 > La documentación interactiva se genera automáticamente en `/docs` (Swagger UI) y `/redoc`.

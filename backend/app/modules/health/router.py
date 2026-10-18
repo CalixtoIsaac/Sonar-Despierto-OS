@@ -11,12 +11,17 @@ def health():
     return {"status": "ok"}
 
 
-@router.get("/health/db", summary="Estado de la conexión a MySQL")
+@router.get("/health/db", summary="Estado de la conexión a la base de datos")
 def health_db():
     if check_db_connection():
         return {"status": "ok", "database": "conectada"}
     return JSONResponse(
         status_code=503,
-        content={"error": {"code": "DB_UNAVAILABLE",
-                           "message": "No se pudo conectar a la base de datos.", "details": None}},
+        content={
+            "error": {
+                "code": "DB_UNAVAILABLE",
+                "message": "No se pudo conectar a la base de datos.",
+                "details": None,
+            }
+        },
     )

@@ -1,4 +1,5 @@
 """Punto de entrada: uvicorn app.main:app --reload (desde la carpeta backend)."""
+
 import logging
 from pathlib import Path
 
@@ -8,7 +9,7 @@ from fastapi.staticfiles import StaticFiles
 
 from app.core.config import settings
 from app.core.errors import register_error_handlers
-from app.routers import health
+from app.modules.health.router import router as health_router
 
 logging.basicConfig(level=logging.INFO if settings.is_dev else logging.WARNING)
 
@@ -28,7 +29,7 @@ app.add_middleware(
 
 register_error_handlers(app)
 
-app.include_router(health.router, prefix=settings.API_PREFIX)
+app.include_router(health_router, prefix=settings.API_PREFIX)
 
 # Frontend estático (se monta al final para no tapar /api ni /docs)
 FRONTEND_DIR = Path(__file__).resolve().parents[2] / "frontend"
