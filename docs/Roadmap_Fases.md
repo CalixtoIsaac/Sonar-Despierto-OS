@@ -1,6 +1,6 @@
 # Hoja de Ruta por Fases — Sistema de Gestión Soñar Despierto
 
-- **Estado:** Aprobada el 2026-10-17
+- **Estado:** Aprobada el 2026-10-17 · Actualizada el 2026-10-17 (F2 con auto-registro, ADR-0008) y el 2026-10-23 (stack de SEMA, ADR-0009)
 - **Decisiones base:** ver [`docs/adr/`](adr/README.md) (ADR-0001 a ADR-0009)
 - **Stack (desde 2026-10-23, ADR-0009):** Node.js + Express + SQLite (`better-sqlite3`) + HTML/CSS/JS sin frameworks — el mismo de SEMA y My Best DataBase
 - **Equipo:** Isaac Galeana, Uziel García, Antonio Anaya, Galilea Valencia, Matías Garrido
@@ -54,6 +54,7 @@ F1 ──► F2 ──┬──► F3 ──► F4 ──┐
             └──► F6 ─────────┘
 ```
 
+- **F2 internamente:** 2.1 primero; después 2.2, 2.3 y 2.4 en paralelo; 2.5 requiere 2.2 y 2.4; 2.6 requiere 2.3 y 2.5.
 - **Después de F2:** tres frentes simultáneos (F3→F4, F5, F6), cada uno en su propia carpeta de módulo.
 - Las migraciones creadas en paralelo usan números consecutivos en `lib/migrations.js`: si dos ramas toman el mismo número, la segunda en integrarse se renumera antes del merge a `main`.
 
@@ -66,3 +67,4 @@ F1 ──► F2 ──┬──► F3 ──► F4 ──┐
 | Lista de tipos de actividad del Calendario (confirmar: junta, capacitación, acopio, evento) | F5 |
 | Logotipo oficial en alta resolución (ícono del ejecutable y favicon) | F8 (provisional en F1) |
 | Aviso de privacidad (LFPDPPP) para datos de menores | F3 |
+| Texto definitivo del compromiso de confidencialidad del registro (hay uno provisional en la F2) | Antes de usar el registro con personal real |
