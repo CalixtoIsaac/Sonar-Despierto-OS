@@ -1,6 +1,6 @@
 # ADR-0001: Frontend como SPA React + Vite + Tailwind a partir del diseño de Lovable
 
-- **Estado:** Aceptado
+- **Estado:** Reemplazado por [ADR-0009](0009-stack-node-express-sqlite-como-sema.md) (2026-10-23)
 - **Fecha:** 2026-10-17
 - **Decisores:** Equipo de desarrollo (aprobado por Isaac Galeana, líder técnico del proyecto)
 - **Relacionado con:** `Arquitectura_y_Convenciones.md` §2–3 (reemplaza la elección de frontend), `Pantallas_UI.md`, ADR-0003

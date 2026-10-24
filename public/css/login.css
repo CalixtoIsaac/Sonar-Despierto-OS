@@ -1,0 +1,38 @@
+/* Pantalla de inicio de sesión (diseño de Lovable: panel con degradado + formulario) */
+.auth-page { display: grid; grid-template-columns: 1fr 1fr; min-height: 100vh; background: var(--background); }
+
+.auth-aside {
+  position: relative; overflow: hidden;
+  display: flex; flex-direction: column; justify-content: space-between; gap: 32px;
+  padding: 48px;
+  background: var(--brand-gradient);
+}
+.auth-aside-card {
+  width: fit-content; padding: 24px; border-radius: var(--radius-lg);
+  background: color-mix(in srgb, var(--card) 92%, transparent); box-shadow: var(--shadow-soft);
+}
+.auth-quote {
+  max-width: 460px; padding: 32px; border-radius: var(--radius-lg);
+  background: color-mix(in srgb, var(--card) 92%, transparent); color: var(--foreground);
+}
+.auth-quote blockquote { margin: 0; font-family: var(--font-display); font-size: 28px; font-weight: 900; line-height: 1.2; }
+.auth-quote p { margin-top: 16px; font-size: 18px; }
+
+.auth-main { display: flex; align-items: center; justify-content: center; padding: 24px; }
+.auth-wrap { width: 100%; max-width: 440px; }
+.auth-mobile-logo { display: none; margin-bottom: 32px; }
+.auth-header h1 { font-size: 32px; }
+.auth-header p { margin-top: 6px; font-size: 17px; }
+.auth-form { margin-top: 28px; }
+.auth-note {
+  margin-top: 32px; padding: 16px; border-radius: var(--radius);
+  background: var(--sidebar-accent); text-align: center;
+}
+.auth-forgot { text-align: center; font-size: 14px; }
+.theme-toggle-fixed { position: fixed; top: 16px; right: 16px; z-index: 10; }
+
+@media (max-width: 1000px) {
+  .auth-page { grid-template-columns: 1fr; }
+  .auth-aside { display: none; }
+  .auth-mobile-logo { display: block; }
+}

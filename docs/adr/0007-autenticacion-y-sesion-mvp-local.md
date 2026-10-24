@@ -1,6 +1,6 @@
 # ADR-0007: Autenticación y manejo de sesión en el MVP local
 
-- **Estado:** Aceptado
+- **Estado:** Aceptado · Modificado por [ADR-0009](0009-stack-node-express-sqlite-como-sema.md) (2026-10-23): un solo token de 8 h con `token_version` (sin refresh); el resto sigue vigente
 - **Fecha:** 2026-10-17
 - **Decisores:** Líder técnico (propuesta incluida en el plan de la Fase 1, aprobada con la hoja de ruta)
 - **Relacionado con:** `API_Spec.md` §1.2 y §3.1 (ajusta tiempos y respuestas), ADR-0003, ADR-0004

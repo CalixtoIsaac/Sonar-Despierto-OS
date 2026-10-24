@@ -1,5 +1,7 @@
 # Fase 1 — Prompts Task Document: Fundación y esqueleto ejecutable
 
+> 🗄️ **Documento histórico (2026-10-23).** La Fase 1 se implementó con Python/FastAPI + React y después se **reimplementó en Node.js + Express + SQLite + HTML/CSS/JS** para usar el mismo stack que SEMA y My Best DataBase ([ADR-0009](../adr/0009-stack-node-express-sqlite-como-sema.md)). El comportamiento (login, cambio de contraseña obligatorio, roles y permisos por módulo, bitácora, arranque local, modo LAN, `--reset-admin`) es el mismo, pero los archivos, comandos y contratos técnicos de este documento ya **no aplican**. Referencia vigente: [`Arquitectura_y_Convenciones.md`](../Arquitectura_y_Convenciones.md) y el `README.md`.
+
 - **Proyecto:** Sistema de Gestión Soñar Despierto (MVP local)
 - **Versión del documento:** 1.0 · **Fecha:** 2026-10-17 · **Estado:** Aprobado para ejecución
 - **Punto de partida:** rama `main`, commit `b11e96a` (esqueleto FastAPI + `/health`)

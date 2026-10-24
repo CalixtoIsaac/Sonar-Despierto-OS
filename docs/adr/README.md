@@ -8,13 +8,15 @@ Un ADR documenta **una** decisión técnica importante: el contexto, lo que se d
 
 | ADR | Título | Estado | Fecha |
 |---|---|---|---|
-| [0001](0001-frontend-react-vite-spa-desde-lovable.md) | Frontend como SPA React + Vite + Tailwind a partir del diseño de Lovable | Aceptado | 2026-10-17 |
-| [0002](0002-sqlite-local-con-orm-portable.md) | SQLite como base de datos del MVP local con capa ORM portable | Aceptado | 2026-10-17 |
-| [0003](0003-ejecucion-local-launcher-y-modo-lan.md) | Ejecución local: ejecutable lanzador, proceso único y modo LAN opcional | Aceptado | 2026-10-17 |
+| [0001](0001-frontend-react-vite-spa-desde-lovable.md) | Frontend como SPA React + Vite + Tailwind a partir del diseño de Lovable | Reemplazado por 0009 | 2026-10-17 |
+| [0002](0002-sqlite-local-con-orm-portable.md) | SQLite como base de datos del MVP local con capa ORM portable | Reemplazado por 0009 | 2026-10-17 |
+| [0003](0003-ejecucion-local-launcher-y-modo-lan.md) | Ejecución local: ejecutable lanzador, proceso único y modo LAN opcional | Aceptado (modificado por 0009) | 2026-10-17 |
 | [0004](0004-roles-admin-operador-y-personas-como-registros.md) | Roles ADMIN / OPERADOR con permisos por módulo; personas como registros | Aceptado | 2026-10-17 |
-| [0005](0005-backend-modular-por-dominio.md) | Backend organizado por módulos de dominio | Aceptado | 2026-10-17 |
+| [0005](0005-backend-modular-por-dominio.md) | Backend organizado por módulos de dominio | Reemplazado por 0009 | 2026-10-17 |
 | [0006](0006-inventario-y-estatus-de-cartas.md) | Inventario separado del ciclo de vida de las cartas | Aceptado | 2026-10-17 |
-| [0007](0007-autenticacion-y-sesion-mvp-local.md) | Autenticación y manejo de sesión en el MVP local | Aceptado | 2026-10-17 |
+| [0007](0007-autenticacion-y-sesion-mvp-local.md) | Autenticación y manejo de sesión en el MVP local | Aceptado (modificado por 0009) | 2026-10-17 |
+| [0008](0008-auto-registro-con-aprobacion.md) | Auto-registro del personal con aprobación del administrador | Aceptado | 2026-10-17 |
+| [0009](0009-stack-node-express-sqlite-como-sema.md) | Mismo stack que My Best DataBase y SEMA: Node.js + Express + SQLite + HTML/CSS/JS | Aceptado | 2026-10-23 |
 
 Hoja de ruta aprobada: [`../Roadmap_Fases.md`](../Roadmap_Fases.md).
 

@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="description" content="Sistema de gestión de Soñar Despierto Veracruz">
+  <title>Iniciar sesión · Soñar Despierto</title>
+  <link rel="icon" href="/img/favicon.ico">
+
+  <!-- El tema va primero para evitar el destello del tema incorrecto -->
+  <script src="/js/theme.js"></script>
+
+  <link rel="stylesheet" href="/vendor/fonts/fonts.css">
+  <link rel="stylesheet" href="/css/theme.css">
+  <link rel="stylesheet" href="/css/base.css">
+  <link rel="stylesheet" href="/css/login.css">
+</head>
+<body>
+  <button class="btn btn-ghost btn-icon theme-toggle-fixed" type="button" data-theme-toggle></button>
+
+  <div class="auth-page">
+    <aside class="auth-aside" aria-hidden="true">
+      <div class="auth-aside-card"><span data-logo="lg"></span></div>
+      <div class="auth-quote">
+        <blockquote>“Que ningún niño se quede sin soñar.”</blockquote>
+        <p>Desde 2012 llevamos regalos, alegría y acompañamiento a niñas y niños de escuelas públicas de Veracruz en Navidad y Día del Niño.</p>
+      </div>
+    </aside>
+
+    <main class="auth-main">
+      <div class="auth-wrap">
+        <div class="auth-mobile-logo"><span data-logo="lg"></span></div>
+
+        <header class="auth-header">
+          <h1>Bienvenido de nuevo</h1>
+          <p class="muted">Ingresa con tu correo y contraseña.</p>
+        </header>
+
+        <form id="loginForm" class="form auth-form" novalidate>
+          <div id="authAlert" class="alert" role="alert" hidden></div>
+
+          <div class="field">
+            <label for="loginEmail">Correo electrónico</label>
+            <input class="input" id="loginEmail" name="email" type="email" autocomplete="username"
+                   aria-describedby="loginEmailError">
+            <p class="field-error" id="loginEmailError" hidden></p>
+          </div>
+          <div class="field">
+            <label for="loginPass">Contraseña</label>
+            <div class="input-group">
+              <input class="input" id="loginPass" name="password" type="password" autocomplete="current-password"
+                     aria-describedby="loginPassError">
+              <button class="input-addon" type="button" data-toggle-password="loginPass"></button>
+            </div>
+            <p class="field-error" id="loginPassError" hidden></p>
+          </div>
+          <button class="btn btn-primary btn-lg btn-block" type="submit">Iniciar sesión</button>
+          <p class="auth-forgot muted">¿Olvidaste tu contraseña? Contacta al administrador del sistema.</p>
+        </form>
+
+        <div class="auth-note">¿No tienes cuenta? Solicítala al administrador del sistema.</div>
+      </div>
+    </main>
+  </div>
+
+  <script src="/js/ui-kit.js"></script>
+  <script src="/js/access.js"></script>
+  <script src="/js/login.js"></script>
+</body>
+</html>

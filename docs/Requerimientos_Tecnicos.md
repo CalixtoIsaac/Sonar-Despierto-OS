@@ -1,5 +1,7 @@
 # Documento de Requisitos Técnicos (PRD) - Sistema de Gestión *Soñar Despierto*
 
+> 🔄 **Actualización 2026-10-23 (ADR-0009):** stack vigente: **Node.js + Express + SQLite (`better-sqlite3`) + HTML/CSS/JavaScript sin frameworks**, el mismo de SEMA y My Best DataBase; ejecución local con `SonarDespierto.bat` o paquete portátil con modo LAN opcional, sin requerir internet. Roles ADMIN/OPERADOR (ADR-0004) y auto-registro con aprobación (ADR-0008) sin cambios.
+
 > ⚠️ **Actualización 2026-10-17:** stack vigente del MVP local: React + Vite + Tailwind (ADR-0001), FastAPI + SQLite (ADR-0002), ejecutable local con modo LAN opcional, sin requerir internet (ADR-0003), y acceso solo para personal con roles ADMIN/OPERADOR (ADR-0004). Ver [`adr/`](adr/README.md) y [`Roadmap_Fases.md`](Roadmap_Fases.md).
 
 ---
@@ -82,13 +84,13 @@ La aplicación está dirigida tanto al equipo coordinador interno como a los vol
 
 * **Tipo de Plataforma:** Aplicación Web responsiva (optimizada para computadoras de escritorio utilizadas por coordinadores y dispositivos móviles para uso rápido en campo).
 * **Stack Tecnológico Seleccionado:**
-* *Frontend:* HTML5, CSS3, JavaScript (Vanilla o frameworks ligeros según se requiera).
-* *Backend:* Python con **FastAPI** (por su alto rendimiento, validación automática con Pydantic y documentación interactiva automática mediante Swagger UI).
-* *Base de Datos:* **MySQL** (para garantizar relaciones sólidas entre escuelas, niños, cartas y voluntarios).
-* *Autenticación:* Tokens JWT (JSON Web Tokens).
+* *Frontend:* HTML5, CSS3 y JavaScript sin frameworks (mismo UI kit que SEMA), con el diseño de Lovable.
+* *Backend:* **Node.js + Express** (mismo stack que SEMA y My Best DataBase; ADR-0009).
+* *Base de Datos:* **SQLite** con `better-sqlite3` en el MVP local, con reglas de portabilidad para pasar a MySQL/PostgreSQL en la nube.
+* *Autenticación:* Tokens JWT (`jsonwebtoken`) y contraseñas con `bcryptjs`.
 
 
-* **Requisitos de conectividad:** Requiere conexión a internet activa (no necesita modo offline complejo para el MVP, dado el uso en centros de acopio y oficinas de coordinación).
+* **Requisitos de conectividad:** El MVP local **no requiere internet** (ADR-0003): funciona en una PC y, opcionalmente, en la red de la oficina.
 
 ---
 

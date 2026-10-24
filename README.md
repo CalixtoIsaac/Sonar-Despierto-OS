@@ -8,69 +8,57 @@ opcionalmente, en la red de la oficina) sin necesidad de internet.
   <img width="225" height="225" alt="image" src="https://github.com/user-attachments/assets/d0fa246f-259d-4ec5-8467-b680b2a6e29f" />
 </p>
 
-**Arquitectura:** un solo proceso local — FastAPI sirve la API (`/api/v1`) y la SPA de React
-compilada en el mismo puerto, con SQLite en el directorio de datos; PyInstaller lo empaqueta como
-`SonarDespierto.exe`. Decisiones en [`docs/adr/`](docs/adr/).
+**Stack:** el mismo de **SEMA** y **My Best DataBase** ([ADR-0009](docs/adr/0009-stack-node-express-sqlite-como-sema.md)):
+
+- **Backend:** Node.js + Express, SQLite con `better-sqlite3`, sesiones JWT (`jsonwebtoken`) y contraseñas con `bcryptjs`.
+- **Frontend:** HTML, CSS y JavaScript **sin frameworks** ni paso de compilación; cada pantalla es un módulo IIFE.
+- **Diseño:** el de Lovable (coral, naranja y sol) recreado con CSS propio, con tema claro y oscuro y tipografías locales.
+
+Un solo proceso sirve la API (`/api`) y las páginas en el mismo puerto (8765). Arquitectura y
+convenciones: [`docs/Arquitectura_y_Convenciones.md`](docs/Arquitectura_y_Convenciones.md).
 
 ## Requisitos de desarrollo
 - Windows 10/11
-- Python 3.12
-- Node 22 LTS (≥ 22.12)
+- **Node.js 22 LTS** (mínimo 20; las pruebas necesitan 21 o superior) y npm
 - Git
 
-## Puesta en marcha (PowerShell)
+## Puesta en marcha
 
 ```powershell
-# 1. Prepara el entorno (entorno virtual, dependencias, backend\.env y node_modules)
-powershell -ExecutionPolicy Bypass -File scripts\setup-dev.ps1
-
-# 2. API en modo desarrollo → http://127.0.0.1:8000/docs
-powershell -ExecutionPolicy Bypass -File scripts\dev-backend.ps1
-
-# 3. (Otra terminal) Interfaz en modo desarrollo → http://localhost:5173
-powershell -ExecutionPolicy Bypass -File scripts\dev-frontend.ps1
+npm install
+copy .env.example .env
+npm run dev          # http://localhost:8765 — se reinicia solo al guardar cambios del servidor
 ```
+
+O doble clic en **`SonarDespierto.bat`** (instala las dependencias la primera vez, arranca y abre el
+navegador). Los cambios en `public/` no requieren reiniciar: basta con recargar el navegador.
 
 En el primer arranque se crea el administrador `admin@sonardespierto.org` con una contraseña
-temporal que queda en `.data\CREDENCIALES_INICIALES.txt`; al entrar, el sistema pide cambiarla.
-Para crear un operador:
+temporal que se muestra en la consola y queda en `.data\CREDENCIALES_INICIALES.txt`; al entrar, el
+sistema pide cambiarla (y el archivo se borra solo).
+
+| Script | Para qué |
+|---|---|
+| `npm run dev` | Desarrollo: reinicia el servidor al guardar (`node --watch`), sin abrir el navegador |
+| `npm start` | Ejecución normal (abre el navegador) |
+| `npm test` | Pruebas automáticas (`node:test`) |
+| `npm run create-user -- --email ana@sonardespierto.org --first-name Ana --last-name Prueba --role OPERADOR --modules CARTAS,CALENDARIO` | Crear un usuario desde la consola (hasta la Fase 2) |
+| `npm run reset-admin [-- --email CORREO]` | Contraseña temporal para el administrador (o ese correo) |
+| `npm run empaquetar` | Pruebas + paquete portátil `dist\SonarDespierto` + prueba de humo |
+
+Opciones de `node server.js` / `SonarDespierto.bat`: `--no-browser`, `--port N`, `--lan`,
+`--data-dir RUTA`, `--reset-admin [--email CORREO]`.
+
+## Paquete portátil (PCs sin Node.js)
 
 ```powershell
-cd backend
-.\.venv\Scripts\python.exe -m scripts.create_user --email ana@sonardespierto.org --first-name Ana --last-name Prueba --role OPERADOR --modules CARTAS,CALENDARIO
-```
-
-## Pruebas y calidad
-
-```powershell
-cd backend
-.\.venv\Scripts\ruff.exe check . ; .\.venv\Scripts\ruff.exe format --check .
-.\.venv\Scripts\python.exe -m pytest
-
-cd ..\frontend
-npm run lint ; npm run typecheck ; npm test
-```
-
-## Generar el ejecutable
-
-```powershell
-powershell -ExecutionPolicy Bypass -File scripts\build.ps1          # agrega -SkipTests para omitir pruebas
-```
-
-Ejecuta las pruebas, compila la interfaz, empaqueta con PyInstaller y corre una prueba de humo
-contra el ejecutable. Resultado: la carpeta **`dist\SonarDespierto\`** (con `SonarDespierto.exe` y
-`LEEME_USUARIO.txt`), que se copia completa a la PC de la oficina; no requiere Python ni Node.
-Para crear el acceso directo en el Escritorio:
-
-```powershell
+npm run empaquetar
 powershell -ExecutionPolicy Bypass -File scripts\crear-acceso-directo.ps1
 ```
 
-## Ejecutar desde el código (sin empaquetar)
-
-`scripts\Iniciar-SonarDespierto.bat` hace lo mismo que el ejecutable usando el entorno de
-desarrollo (requiere `npm run build` para ver la interfaz). Acepta las mismas opciones:
-`--no-browser`, `--port N`, `--lan`, `--data-dir RUTA`, `--reset-admin [--email CORREO]`.
+Genera **`dist\SonarDespierto\`** con su propio `node.exe`, las dependencias y `LEEME_USUARIO.txt`.
+Se copia completa a la PC de la oficina; el acceso directo apunta a `SonarDespierto.bat`. Debe
+generarse en Windows de 64 bits (usa el `node.exe` y el binario de `better-sqlite3` de esa PC).
 
 ## Modo red local (LAN)
 
@@ -78,40 +66,41 @@ Con `LAN_MODE=true` en `config.env` (o la opción `--lan`), el servidor escucha 
 interfaces y el banner muestra la dirección para otras PCs (`http://IP-DE-ESTA-PC:8765`). Windows
 pedirá permiso en el Firewall: marca solo **Redes privadas**. No lo actives en redes públicas.
 
-## Directorio de datos
+## Carpeta de datos
 
 | Ejecución | Carpeta |
 |---|---|
-| Ejecutable | `%LOCALAPPDATA%\SonarDespierto` |
+| Paquete portátil | `%LOCALAPPDATA%\SonarDespierto` |
 | Código fuente | `<repo>\.data` |
 | Cualquiera | la variable `SD_DATA_DIR` o la opción `--data-dir` tienen prioridad |
 
 Contiene `sonar.db` (SQLite), `secret.key`, `config.env`, `logs\sonar.log`, `uploads\` y
-`backups\`. No debe estar en una carpeta sincronizada (OneDrive, Dropbox).
+`backups\`. En producción no debe estar en una carpeta sincronizada (OneDrive, Dropbox). Una
+`sonar.db` creada por la versión anterior (Python) se adopta sola, sin perder las cuentas.
 
-## Recuperar la contraseña del administrador
+## Estructura
 
-```powershell
-.\SonarDespierto.exe --reset-admin                    # en la carpeta del programa
-python launcher\launcher.py --reset-admin             # desde el código fuente (con el venv)
+```text
+server.js · SonarDespierto.bat · package.json
+lib/        configuración, BD y migraciones, seguridad, middlewares de permisos, arranque
+services/   casos de uso y SQL (auth, users, audit)
+routes/     capa HTTP (/api/health, /api/auth)
+public/     login.html, app.html, css/, js/ (ui-kit, access, vistas), vendor/fonts/
+scripts/    reset-admin, create-user, empaquetar, crear-acceso-directo.ps1
+test/       pruebas con node:test
+docs/       requerimientos, modelo de datos, API, pantallas, ADR y fases
 ```
-
-Asigna una contraseña temporal (se muestra una vez y queda en `CREDENCIALES_INICIALES.txt`) y
-obliga a cambiarla al entrar.
 
 ## Documentación
 - Hoja de ruta: [`docs/Roadmap_Fases.md`](docs/Roadmap_Fases.md)
 - Decisiones de arquitectura (ADR): [`docs/adr/`](docs/adr/)
 - Prompts y tareas por fase: [`docs/fases/`](docs/fases/)
-- Diseño: [`docs/`](docs/) (requerimientos, modelo de datos, API, pantallas, convenciones)
 
 ## Estado
-- **Fase 1 — Fundación y esqueleto ejecutable:** implementada (subtareas 1.1–1.6); se marcará ✅
-  al cerrar el Gate de la fase ([§5](docs/fases/Fase_1_Prompts_Task_Document.md)).
-  - [x] 1.1 Saneamiento del repositorio y estructura modular
-  - [x] 1.2 Núcleo backend: configuración, datos locales, SQLite, Alembic y SPA
-  - [x] 1.3 Usuarios, autenticación JWT y permisos por módulo
-  - [x] 1.4 Migración del diseño Lovable a una SPA con Vite
-  - [x] 1.5 Integración de autenticación frontend ↔ API
-  - [x] 1.6 Lanzador, build y ejecutable Windows
-- Fases 2–8: ver la [hoja de ruta](docs/Roadmap_Fases.md).
+- **Fase 1 — Fundación:** ✅ reimplementada en Node.js + Express + SQLite (2026-10-23, ADR-0009):
+  login, cambio obligatorio de contraseña, roles ADMIN/OPERADOR con permisos por módulo, bitácora,
+  menú según permisos, arranque local con instancia única, modo LAN, `--reset-admin` y paquete
+  portátil con prueba de humo.
+- **Fase 2 — Usuarios, auto-registro y bitácora:** siguiente
+  ([documento de la fase](docs/fases/Fase_2_Prompts_Task_Document.md)).
+- Fases 3–8: ver la [hoja de ruta](docs/Roadmap_Fases.md).

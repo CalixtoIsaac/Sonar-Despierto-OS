@@ -1,6 +1,6 @@
 # ADR-0003: Ejecución local — ejecutable lanzador, proceso único y modo LAN opcional
 
-- **Estado:** Aceptado
+- **Estado:** Aceptado · Modificado por [ADR-0009](0009-stack-node-express-sqlite-como-sema.md) (2026-10-23): el ejecutable de PyInstaller pasa a ser `SonarDespierto.bat` + paquete portátil con `node.exe`; el resto sigue vigente
 - **Fecha:** 2026-10-17
 - **Decisores:** Equipo de desarrollo (aprobado por Isaac Galeana)
 - **Relacionado con:** ADR-0001, ADR-0002, `PROJECT_CONTEXT.md` §2.1
