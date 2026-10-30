@@ -4,6 +4,69 @@
 
 > ⚠️ **Actualización 2026-10-17:** en el MVP local el motor es **SQLite** con reglas de portabilidad (ADR-0002); el DDL MySQL de §8 queda como referencia para la nube. Roles `ADMIN`/`OPERADOR` con la tabla `user_module_permissions` y `users.token_version` (ADR-0004, ADR-0007). `volunteer_profiles` y `tutor_profiles` pasarán a ser entidades independientes sin cuenta, y las FK a `users` de padrinos y tutores cambiarán (tabla de cambios en ADR-0004); esta sección se actualizará al inicio de las Fases 3 y 4. Donde haya contradicción, mandan los ADR de [`adr/`](adr/README.md).
 
+> ✅ **Esquema vigente (Fases 1–3, 2026-10-29):** la sección **§0** describe las tablas que existen hoy en `lib/migrations.js` (migraciones 1 a 3). Las secciones §2–§8 conservan el diseño original como referencia para las fases siguientes y para la nube; donde contradigan a §0, manda §0. En particular, `volunteer_profiles` y `tutor_profiles` (§4.2–§4.3) **no existen**: se sustituyeron por `volunteers` y `tutors` sin cuenta (ADR-0004), y `children.tutor_user_id` es ahora `children.tutor_id → tutors` (opcional, ADR-0010).
+
+## 0. Esquema vigente (SQLite, migraciones 1–3)
+
+| Migración | Tablas / cambios |
+|---|---|
+| 1 (F1) | `users`, `user_module_permissions`, `audit_logs` |
+| 2 (F2) | `users` + `account_status`, `requested_modules`, `registration_note`, `confidentiality_accepted_at`, `reviewed_by_id`, `reviewed_at`, `review_note` |
+| 3 (F3) | `schools`, `tutors`, `volunteers`, `children` |
+
+### 0.1 `users` — cuentas del personal (F1 + F2)
+
+| Columna | Tipo | Notas |
+|---|---|---|
+| `id` | INTEGER PK | |
+| `email` | TEXT NOT NULL UNIQUE | minúsculas |
+| `password_hash` | TEXT NOT NULL | bcrypt; nunca sale de la BD |
+| `role` | TEXT `CHECK IN ('ADMIN','OPERADOR')` | default `OPERADOR` |
+| `first_name`, `last_name`, `phone` | TEXT | `phone` 10 dígitos o NULL |
+| `is_active` | INTEGER 0/1 | |
+| `must_change_password` | INTEGER 0/1 | contraseña temporal |
+| `token_version` | INTEGER | se incrementa al cerrar sesión, cambiar o restablecer la contraseña, desactivar o cambiar el rol |
+| `last_login_at`, `created_at`, `updated_at` | TEXT ISO UTC | |
+| `account_status` | TEXT `CHECK IN ('PENDIENTE','APROBADA','RECHAZADA')` | default `APROBADA`; solo el auto-registro crea `PENDIENTE` |
+| `requested_modules` | TEXT (JSON) | módulos que pidió al registrarse |
+| `registration_note` | TEXT ≤ 500 | |
+| `confidentiality_accepted_at` | TEXT ISO | aceptación del compromiso de confidencialidad |
+| `reviewed_by_id` | INTEGER → `users.id` `ON DELETE SET NULL` | ADMIN que aprobó o rechazó |
+| `reviewed_at`, `review_note` | TEXT | nota de aprobación o motivo del rechazo |
+
+**Máquina de estados de la cuenta (ADR-0008):**
+
+```text
+ POST /api/auth/register ──► PENDIENTE ──approve──► APROBADA ◄──approve── RECHAZADA
+                                │                     │  ▲                    ▲
+                                ├──reject─────────────┼──┼────────────────────┘
+                                │                     │  └─ PATCH is_active=true  (activar)
+                                │                     └──── PATCH is_active=false (desactivar)
+                                └──DELETE (también desde RECHAZADA) ──► se elimina la fila
+ POST /api/users, admin inicial, npm run create-user ──► APROBADA directamente
+```
+
+Invariante: `account_status ≠ 'APROBADA' ⇒ is_active = 0`. Siempre queda al menos un ADMIN aprobado y activo.
+
+`user_module_permissions (id, user_id → users ON DELETE CASCADE, module CHECK IN (7 módulos), created_at, UNIQUE(user_id, module))`. El ADMIN no tiene filas: tiene todos.
+
+`audit_logs (id, user_id → users ON DELETE SET NULL [actor], action, entity, entity_id, detail JSON, ip_address, created_at)`. Catálogo de acciones en `lib/audit-actions.js` (21 en la F3). `detail` nunca contiene contraseñas, tokens ni datos de niñas y niños.
+
+### 0.2 Personas (F3, ADR-0004 y ADR-0010)
+
+Columnas comunes: `is_active` (baja lógica), `created_by_id → users ON DELETE SET NULL`, `created_at`, `updated_at`. `name_key` / `sort_key` / `zone_key` = texto normalizado (sin acentos, minúsculas) que calcula `lib/text.js` para búsqueda, orden y duplicados.
+
+| Tabla | Columnas | Restricciones |
+|---|---|---|
+| `schools` | `name`, `name_key`, `cct` (mayúsculas), `zone`, `zone_key`, `address`, `contact_name`, `contact_phone` | `UNIQUE(cct)`, `UNIQUE(name_key, zone_key)` |
+| `tutors` | `first_name`, `last_name`, `name_key`, `sort_key`, `phone` NOT NULL, `email`, `position`, `school_id → schools ON DELETE RESTRICT`, `notes` | índices `(name_key, phone)`, `(school_id)` |
+| `volunteers` | `first_name`, `last_name`, `name_key`, `sort_key`, `email` UNIQUE, `phone` NOT NULL, `birth_date`, `city`, `occupation`, `emergency_contact_name` NOT NULL, `emergency_contact_phone` NOT NULL, `emergency_contact_relationship`, `shirt_size CHECK IN (XS,S,M,L,XL,XXL)`, `area_of_interest CHECK IN (8 áreas)`, `medical_notes` 🔒, `notes`, `privacy_consent_at` NOT NULL | índices `(name_key, phone)`, `(sort_key)` |
+| `children` 🔒 | `first_name`, `last_name`, `name_key`, `sort_key`, `birth_date` NOT NULL, `gender CHECK IN (NINA,NINO,OTRO,NO_ESPECIFICA)`, `school_id → schools RESTRICT`, `grade`, `group_name`, `tutor_id → tutors RESTRICT` (opcional), `guardian_name` NOT NULL, `guardian_relationship`, `guardian_phone`, `guardian_consent` 0/1, `guardian_consent_at`, `notes` 🔒 | índices `(name_key, birth_date)` (duplicados), `(sort_key)`, `(school_id)`, `(tutor_id)` |
+
+Duplicados (`409` con `existing_id`, validados en el servicio): niñas y niños por `name_key + birth_date`; voluntarios por `email` o `name_key + phone`; tutores por `name_key + phone`; escuelas por `cct` o `name_key + zone_key`. Detalle en [`fases/Fase_3_Contratos.md`](fases/Fase_3_Contratos.md).
+
+---
+
 > **Versión:** 1.0 (MVP) · **Motor:** MySQL 8.0+ · **Engine:** InnoDB · **Charset:** `utf8mb4` / `utf8mb4_0900_ai_ci`
 > **Documento relacionado:** `Requerimientos_Tecnicos.md` (PRD), `API_Spec.md`, `Arquitectura_y_Convenciones.md`
 

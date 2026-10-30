@@ -1,5 +1,7 @@
 # Especificación de API (MVP) — Soñar Despierto
 
+> ✅ **Actualizado en las Fases 2 y 3 (2026-10-29; ADR-0004, ADR-0007, ADR-0008, ADR-0009, ADR-0010):** las secciones §3.1–§3.5 de este documento describen los **endpoints vigentes** de autenticación, auto-registro, usuarios, bitácora y personas (voluntarios, escuelas, tutores y niños). Contratos completos: [`fases/Fase_2_Prompts_Task_Document.md`](fases/Fase_2_Prompts_Task_Document.md) §3 y [`fases/Fase_3_Contratos.md`](fases/Fase_3_Contratos.md). Las secciones de eventos, cartas y dashboard (§3.6–§3.8) siguen siendo el diseño original y se actualizarán en las Fases 4 y 7.
+
 > 🔄 **Actualización 2026-10-23 (ADR-0009):** el backend es **Node.js + Express** (mismo stack que SEMA y My Best DataBase). Cambios de forma, no de reglas: **base URL `/api`** (antes `/api/v1`); **un solo token** de sesión de 8 h en `token` (sin `refresh_token` ni `POST /auth/refresh`); formato de error **plano** `{ "error": "mensaje", "code": "CODIGO", "details": [...] }` (los códigos y mensajes no cambian); no hay Swagger: esta especificación es la documentación de referencia. Endpoints vigentes de la Fase 1: `POST /api/auth/login` → `{ token, expires_in, user }`, `POST /api/auth/logout` → `204`, `GET /api/auth/me` → `{ user }`, `POST /api/auth/change-password` → `{ token, expires_in, user }`, `GET /api/health`, `GET /api/health/db`. Los esquemas JSON siguen en `snake_case`.
 
 > ⚠️ **Actualización 2026-10-17:** en el MVP local no hay registro público (`POST /auth/register` pasa a la fase de nube) y los roles son `ADMIN`/`OPERADOR` con permisos por módulo (ADR-0004). La autenticación vigente (refresh de 12 h, `logout`, `change-password` con respuesta 200 y nuevos tokens, `PASSWORD_CHANGE_REQUIRED`) está en ADR-0007 y en `fases/Fase_1_Prompts_Task_Document.md` §3.7. Cada fase actualizará su sección de este documento. Donde haya contradicción, mandan los ADR de [`adr/`](adr/README.md).
@@ -141,170 +143,77 @@ Respuesta paginada:
 
 ## 3. Detalle por módulo
 
-### 3.1 Auth
+### 3.1 Auth (vigente — Fases 1 y 2)
 
-#### 1. `POST /auth/register` — Registro público de voluntario 🌐
-Crea `users` (rol `VOLUNTARIO`) + `volunteer_profiles` en una transacción. **No** permite elegir rol.
+| Método y ruta | Acceso | Respuesta | Errores |
+|---|---|---|---|
+| `POST /api/auth/login` `{ email, password }` | 🌐 | `200 { token, expires_in, user: UserMe }` | `401 INVALID_CREDENTIALS`, `403 ACCOUNT_PENDING`, `403 ACCOUNT_REJECTED`, `403 ACCOUNT_DISABLED`, `422`, `429 TOO_MANY_REQUESTS` |
+| `POST /api/auth/logout` | 🔑 | `204` (invalida el token en todas las PCs) | `401` |
+| `GET /api/auth/me` | 🔑 (aunque deba cambiar la contraseña) | `200 { user: UserMe }` | `401` |
+| `PATCH /api/auth/me` `{ first_name?, last_name?, phone? }` | 🔑 | `200 { user }` (audita `PROFILE_UPDATED`) | `401`, `403 PASSWORD_CHANGE_REQUIRED`, `422` (campo no permitido, cuerpo vacío) |
+| `POST /api/auth/change-password` `{ current_password, new_password }` | 🔑 | `200 { token, expires_in, user }` | `400 INVALID_CURRENT_PASSWORD`, `400 PASSWORD_REUSED`, `422` |
+| `GET /api/auth/registration-info` | 🌐 | `200 { "enabled": true }` | — |
+| `POST /api/auth/register` | 🌐 | `201 { email, account_status: "PENDIENTE", message }` (sin token) | `403 REGISTRATION_DISABLED`, `409 EMAIL_ALREADY_EXISTS`, `422`, `429` (5 solicitudes por equipo cada 60 min) |
 
-Body:
-```json
-{
-  "email": "ana@correo.com",
-  "password": "Segura123!",
-  "first_name": "Ana",
-  "last_name": "López Pérez",
-  "phone": "2291234567",
-  "profile": {
-    "birth_date": "2000-05-14",
-    "address_city": "Veracruz",
-    "occupation": "Estudiante",
-    "emergency_contact_name": "María Pérez",
-    "emergency_contact_phone": "2297654321",
-    "emergency_contact_relationship": "Madre",
-    "shirt_size": "M",
-    "area_of_interest": "PADRINO",
-    "medical_notes": null
-  },
-  "privacy_consent": true
-}
-```
-Respuesta `201`: `UserOut` (ver §4) + tokens (`access_token`, `refresh_token`).
-Errores: `409 EMAIL_ALREADY_EXISTS`, `400 CONSENT_REQUIRED` (si `privacy_consent` ≠ true), `422`.
-Validación: contraseña ≥ 8 caracteres con al menos 1 letra y 1 número; teléfono 10 dígitos; email normalizado a minúsculas.
+`UserMe`: `{ id, email, first_name, last_name, phone, role, is_active, must_change_password, modules, last_login_at }`. `RegisterRequest`: `{ first_name, last_name, email, phone (10 dígitos), password, requested_modules: [], note?, accepts_confidentiality: true }`. La cuenta registrada queda `PENDIENTE` hasta que un ADMIN la aprueba (ADR-0008).
 
-#### 2. `POST /auth/login` 🌐
-Body: `{ "email": "...", "password": "..." }`
-Respuesta `200`:
-```json
-{
-  "access_token": "eyJ...",
-  "refresh_token": "eyJ...",
-  "token_type": "bearer",
-  "expires_in": 1800,
-  "user": { "id": 1, "email": "...", "role": "ADMIN", "first_name": "...", "last_name": "...", "must_change_password": false }
-}
-```
-Errores: `401 INVALID_CREDENTIALS` (mismo mensaje si el correo no existe o la contraseña es incorrecta), `403 ACCOUNT_DISABLED`, `429 TOO_MANY_REQUESTS` (5 intentos fallidos / 15 min por IP+correo).
-Efectos: actualiza `last_login_at`; registra `LOGIN` / `LOGIN_FAILED` en `audit_logs`.
+### 3.2 Usuarios (vigente — Fase 2, solo ADMIN)
 
-> Opcional: exponer también `POST /auth/token` con `OAuth2PasswordRequestForm` para que el botón "Authorize" de Swagger funcione.
+| Método y ruta | Respuesta | Errores |
+|---|---|---|
+| `GET /api/users` `?page&page_size&search&role&account_status&is_active&module&order_by` | `Page<UserOut>` | `401`, `403 FORBIDDEN`, `422` |
+| `GET /api/users/summary` | `{ pending, active, inactive, rejected, admins }` | |
+| `POST /api/users` `{ email, first_name, last_name, phone?, role, modules }` | `201 { user: UserDetail, temporary_password }` (`Cache-Control: no-store`) | `409 EMAIL_ALREADY_EXISTS`, `422` |
+| `GET /api/users/:id` | `{ user: UserDetail }` | `404 NOT_FOUND` |
+| `PATCH /api/users/:id` `{ first_name?, last_name?, phone?, role?, modules?, is_active? }` | `{ user }` | `400 INVALID_ACCOUNT_STATE`, `400 SELF_ACTION_FORBIDDEN`, `400 LAST_ADMIN`, `404`, `422` |
+| `POST /api/users/:id/approve` `{ role?, modules, note? }` | `{ user }` | `400 INVALID_ACCOUNT_STATE`, `404`, `422` |
+| `POST /api/users/:id/reject` `{ reason }` (5–500) | `{ user }` | `400`, `404`, `422` |
+| `POST /api/users/:id/reset-password` | `{ temporary_password, message }` (`no-store`) | `400`, `404` |
+| `DELETE /api/users/:id` (solo solicitudes pendientes o rechazadas) | `204` | `400`, `404` |
 
-#### 3. `POST /auth/refresh` 🌐
-Body: `{ "refresh_token": "..." }` → `200` con nuevo `access_token` (y nuevo `refresh_token`). Error `401 TOKEN_EXPIRED`.
+Reglas: invariante `account_status ≠ APROBADA ⇒ is_active = 0`; el ADMIN no puede cambiar su propio rol, desactivarse, restablecerse ni eliminarse; siempre queda al menos un ADMIN activo. Esquemas `UserOut` / `UserDetail` y textos exactos de error: `fases/Fase_2_Prompts_Task_Document.md` §3.7–§3.8.
 
-#### 4. `GET /auth/me` 🔑
-`200`: `UserOut` + `volunteer_profile` o `tutor_profile` según el rol.
+### 3.2b Bitácora (vigente — Fase 2, solo ADMIN)
 
-#### 5. `POST /auth/change-password` 🔑
-Body: `{ "current_password": "...", "new_password": "..." }` → `204`. Pone `must_change_password = FALSE`.
-Error: `400 INVALID_CURRENT_PASSWORD`.
+`GET /api/audit-logs` `?page&page_size(50)&action(repetible)&entity&entity_id&actor_id&date_from&date_to` → `Page<AuditLogOut>` con `{ id, created_at, action, entity, entity_id, actor: UserRef | null, detail, ip_address }`, orden `created_at` desc. `date_from` incluido y `date_to` excluido (ISO 8601, se convierten a UTC). Acciones: las 16 de la Fase 2 + `RECORD_CREATED`, `RECORD_UPDATED`, `RECORD_DEACTIVATED`, `RECORD_ACTIVATED`, `DATA_EXPORTED` (Fase 3, ADR-0010).
 
----
+### 3.3 Voluntarios (vigente — Fase 3, módulo `VOLUNTARIOS`)
 
-### 3.2 Usuarios (gestión por coordinador)
+Los voluntarios son **registros sin cuenta** (ADR-0004); los endpoints `/volunteers/me` del diseño original pasan a la fase de nube.
 
-#### 6. `GET /users` — A
-Query: `role`, `is_active`, `search` (nombre/correo), paginación. → `Page[UserOut]`.
+| Método y ruta | Respuesta | Errores |
+|---|---|---|
+| `GET /api/volunteers` `?page&page_size&search&area&shirt_size&is_active&order_by` | `Page<VolunteerListItem>` | `401`, `403 MODULE_FORBIDDEN`, `422` |
+| `GET /api/volunteers/summary` (mismos filtros) | `{ total, shirt_sizes: { XS…XXL }, areas: { … } }` | |
+| `GET /api/volunteers/export` (mismos filtros) | `text/csv` UTF-8 con BOM, sin notas médicas; audita `DATA_EXPORTED` | |
+| `POST /api/volunteers` (campos + `accepts_privacy: true`) | `201 { volunteer: VolunteerOut }` | `409 DUPLICATE_VOLUNTEER` + `existing_id`, `422` |
+| `GET /api/volunteers/:id` | `{ volunteer }` (incluye contacto de emergencia y notas médicas) | `404` |
+| `PATCH /api/volunteers/:id` (campos + `is_active`) | `{ volunteer }` | `404`, `409`, `422` |
 
-#### 7. `POST /users` — A
-Crea cuentas de **ADMIN** o **TUTOR** (los voluntarios se registran solos, aunque el admin también puede crearlos).
-```json
-{
-  "email": "prof.juan@escuela.mx",
-  "role": "TUTOR",
-  "first_name": "Juan",
-  "last_name": "Martínez",
-  "phone": "2291112233",
-  "temporary_password": "Temporal2026",
-  "tutor_profile": { "school_id": 3, "position": "Profesor 4°B" }
-}
-```
-`201` → `UserOut`. La cuenta queda con `must_change_password = TRUE`.
-Errores: `409 EMAIL_ALREADY_EXISTS`, `400 PROFILE_REQUIRED` (TUTOR sin `tutor_profile`), `404` si `school_id` no existe.
+### 3.4 Escuelas y tutores (vigente — Fase 3, módulo `BENEFICIARIOS`)
 
-#### 8. `GET /users/{id}` — A → `UserOut` con perfil.
+| Método y ruta | Respuesta | Errores |
+|---|---|---|
+| `GET /api/schools` `?page&page_size&search&zone&is_active&order_by` | `Page<SchoolOut>` (con `children_count`, `tutors_count`) | `401`, `403`, `422` |
+| `POST /api/schools` `{ name, cct?, zone?, address?, contact_name?, contact_phone? }` | `201 { school }` | `409 DUPLICATE_SCHOOL` + `existing_id` (CCT o nombre + zona), `422` |
+| `GET` / `PATCH /api/schools/:id` (baja con `is_active: false`) | `{ school }` | `404`, `409`, `422` |
+| `GET /api/tutors` `?page&page_size&search&school_id&is_active&order_by` | `Page<TutorOut>` | |
+| `POST /api/tutors` `{ first_name, last_name, phone, email?, position?, school_id?, notes? }` | `201 { tutor }` | `409 DUPLICATE_TUTOR`, `422` (escuela inexistente o dada de baja) |
+| `GET` / `PATCH /api/tutors/:id` | `{ tutor }` | `404`, `409`, `422` |
 
-#### 9. `PATCH /users/{id}` — A
-Campos editables: `first_name`, `last_name`, `phone`, `role`, `is_active`, `tutor_profile`.
-Reglas: un admin **no puede** desactivarse a sí mismo ni quitarse el rol ADMIN; debe existir al menos un ADMIN activo (`400 LAST_ADMIN`).
+### 3.5 Niñas y niños (vigente — Fase 3, módulo `BENEFICIARIOS`, datos sensibles)
 
-#### 10. `POST /users/{id}/reset-password` — A
-Body: `{ "temporary_password": "..." }` → `204`. Activa `must_change_password`.
+**Alcance:** solo ADMIN u OPERADOR con `BENEFICIARIOS` (sustituye la regla "TUTOR solo ve lo suyo", ADR-0004).
 
----
+| Método y ruta | Respuesta | Errores |
+|---|---|---|
+| `GET /api/children` `?page&page_size&search&school_id(id\|none)&tutor_id&gender&consent&is_active&order_by` | `Page<ChildListItem>` (sin teléfonos ni observaciones) | `401`, `403 MODULE_FORBIDDEN`, `422` |
+| `GET /api/children/export` (mismos filtros) | `text/csv` sin observaciones; audita `DATA_EXPORTED` | |
+| `POST /api/children` `{ first_name, last_name, birth_date, gender?, school_id?, grade?, group_name?, tutor_id?, guardian_name, guardian_relationship?, guardian_phone?, guardian_consent?, notes? }` | `201 { child: ChildOut }` | `409 DUPLICATE_CHILD` + `existing_id` (mismo nombre y fecha de nacimiento), `422` (edad fuera de 0–17, escuela o tutor inexistentes) |
+| `GET /api/children/:id` | `{ child }` (incluye `letters: []`, que llena la F4) | `404` |
+| `PATCH /api/children/:id` (campos + `is_active`) | `{ child }` | `404`, `409`, `422` |
 
-### 3.3 Voluntarios
-
-#### 11. `GET /volunteers/me` — V → `VolunteerOut` (usuario + perfil + eventos a los que se postuló).
-
-#### 12. `PUT /volunteers/me` — V
-Body: igual a `profile` de §1 + `first_name`, `last_name`, `phone`. → `200 VolunteerOut`. El email no se cambia aquí.
-
-#### 13. `GET /volunteers` — A
-Query: `search`, `area_of_interest`, `shirt_size`, `event_id` (inscritos a un evento), `participation_status`, `is_active`, paginación.
-→ `Page[VolunteerListItem]` (`id`, nombre, email, teléfono, área, talla, eventos).
-
-#### 14. `GET /volunteers/{user_id}` — A → `VolunteerOut` completo (incluye contacto de emergencia y `medical_notes`).
-
-#### 15. `GET /volunteers/export` — A
-Mismos filtros que #13. Respuesta `text/csv` (`Content-Disposition: attachment`). Se registra `EXPORT` en `audit_logs`.
-Uso típico: lista de tallas de playera por evento.
-
----
-
-### 3.4 Escuelas
-
-#### 16. `GET /schools` — A, T
-Query: `search`, `zone`, `is_active`. TUTOR ve todas (solo `id`, `name`, `zone`) para poder seleccionar en formularios.
-→ `Page[SchoolOut]` (incluye `children_count` para ADMIN).
-
-#### 17. `POST /schools` — A
-```json
-{ "name": "Primaria Benito Juárez", "cct": "30EPR0001A", "zone": "Centro", "address": "...", "contact_name": "...", "contact_phone": "..." }
-```
-`201` → `SchoolOut`. Errores: `409 DUPLICATE_SCHOOL` (cct o nombre+zona).
-
-#### 18. `GET /schools/{id}` — A, T → `SchoolOut`.
-#### 19. `PATCH /schools/{id}` — A → `SchoolOut`. Desactivar con `is_active: false`.
-
----
-
-### 3.5 Niños (datos sensibles)
-
-**Alcance:** ADMIN ve todos. TUTOR ve **solo** niños con `tutor_user_id = su id`. VOLUNTARIO **no tiene acceso** a este módulo.
-
-#### 20. `GET /children` — A, T
-Query: `search` (nombre/apellido), `school_id`, `grade`, `has_letter` (bool, para `event_id`), `event_id`, `is_active`, paginación.
-→ `Page[ChildListItem]`: `id`, `first_name`, `last_name`, `age`, `gender`, `school {id,name}`, `grade`, `group_name`, `guardian_consent`, `letter_status` (del evento consultado, si aplica).
-
-#### 21. `POST /children` — A, T
-```json
-{
-  "first_name": "Luis",
-  "last_name": "Hernández Cruz",
-  "birth_date": "2017-03-02",
-  "gender": "NINO",
-  "school_id": 3,
-  "grade": "3° primaria",
-  "group_name": "B",
-  "guardian_name": "Rosa Cruz",
-  "guardian_phone": "2290001122",
-  "guardian_consent": true,
-  "notes": null,
-  "tutor_user_id": 12
-}
-```
-- Si quien crea es TUTOR, `tutor_user_id` se **ignora** y se usa su propio id; `school_id` por defecto = escuela de su perfil.
-- Si es ADMIN, `tutor_user_id` es obligatorio y debe ser un usuario TUTOR activo.
-- `birth_date`: niño entre 0 y 17 años.
-- Duplicado (mismo nombre, apellidos, fecha nac. y escuela) → `409 DUPLICATE_CHILD` con `details.existing_id`.
-- `guardian_consent = true` registra `guardian_consent_at = now()`.
-`201` → `ChildOut`.
-
-#### 22. `GET /children/{id}` — A, T → `ChildOut` (incluye cartas del niño por evento).
-#### 23. `PATCH /children/{id}` — A, T → `ChildOut`. TUTOR no puede cambiar `tutor_user_id`.
-#### 24. `DELETE /children/{id}` — A
-Borrado lógico (`is_active = false`). Si tiene cartas en `ASIGNADO`/`RECIBIDO` → `400 CHILD_HAS_ACTIVE_LETTERS`. → `204`.
+No hay `DELETE`: la baja es lógica (`is_active: false`). La regla `CHILD_HAS_ACTIVE_LETTERS` se agregará en la Fase 4. Esquemas completos: `fases/Fase_3_Contratos.md` §4.
 
 ---
 

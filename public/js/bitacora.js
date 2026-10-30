@@ -24,6 +24,7 @@ const Bitacora = (() => {
 
   function about(log) {
     if (!log.entity) return '—';
+    if (!log.entity_id) return Audit.ENTITY_PLURAL[log.entity] ? esc(`Listado de ${Audit.ENTITY_PLURAL[log.entity]}`) : esc(log.entity);
     const label = Audit.ENTITY_LABEL[log.entity] || log.entity;
     let text = `${label} #${log.entity_id ?? '—'}`;
     if (log.entity === 'users' && log.detail && log.detail.email) text = log.detail.email;
@@ -113,17 +114,20 @@ const Bitacora = (() => {
     async function renderChip() {
       const el = container.querySelector('[data-chip]');
       if (!params.objeto) { el.innerHTML = ''; return; }
-      let label = `Usuario #${params.objeto}`;
-      try { label = (await UI.api(`/users/${Number(params.objeto)}`)).user.email; } catch { /* puede estar eliminada */ }
+      const entity = params.entidad || 'users';
+      let label = `${Audit.ENTITY_LABEL[entity] || entity} #${params.objeto}`;
+      if (entity === 'users') {
+        try { label = (await UI.api(`/users/${Number(params.objeto)}`)).user.email; } catch { /* puede estar eliminada */ }
+      }
       el.innerHTML = `<p class="chip-row"><span class="chip">Sobre: ${esc(label)}
         <button type="button" class="chip-x" aria-label="Quitar filtro">${UI.icon('x')}</button></span></p>`;
-      el.querySelector('.chip-x').addEventListener('click', () => { setParams({ objeto: null, page: null }); renderChip(); });
+      el.querySelector('.chip-x').addEventListener('click', () => { setParams({ objeto: null, entidad: null, page: null }); renderChip(); });
     }
 
     function query() {
       const range = Fechas.localDayRangeToUtc(params.desde, params.hasta);
       const q = { page: Number(params.page) || 1, page_size: 50, action: params.accion, actor_id: params.usuario, ...range };
-      if (params.objeto) { q.entity = 'users'; q.entity_id = params.objeto; }
+      if (params.objeto) { q.entity = params.entidad || 'users'; q.entity_id = params.objeto; }
       return q;
     }
 
@@ -140,7 +144,7 @@ const Bitacora = (() => {
         <div class="table-wrap desktop-only"><table class="table table-compact">
           <thead><tr><th>Fecha y hora</th><th>Usuario</th><th>Acción</th><th>Sobre</th><th>Detalle</th><th>IP</th></tr></thead>
           <tbody>${rows.map(({ log, detail }) => `
-            <tr><td class="nowrap">${esc(Fechas.formatDateTime(log.created_at))}</td><td>${actorCell(log)}</td>
+            <tr><td class="date-cell">${esc(Fechas.formatDateTime(log.created_at))}</td><td>${actorCell(log)}</td>
               <td>${groupBadge(log.action)}</td><td>${about(log)}</td>
               <td class="detail-cell">${esc(detail)}${log.detail ? `<details class="tech"><summary>Ver detalle técnico</summary><pre>${esc(JSON.stringify(log.detail, null, 2))}</pre></details>` : ''}</td>
               <td class="muted nowrap">${esc(log.ip_address || '—')}</td></tr>`).join('')}</tbody>

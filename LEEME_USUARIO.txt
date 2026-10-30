@@ -63,8 +63,85 @@ NUNCA lo actives en redes Wi-Fi públicas (cafeterías, plazas,
 hoteles, etc.).
 
 
+CÓMO PEDIR UNA CUENTA (PERSONAL)
+--------------------------------
+1. En la pantalla de inicio de sesión, haz clic en
+   "¿No tienes cuenta? Solicítala aquí".
+2. Llena tus datos, elige tu contraseña y marca los módulos con
+   los que vas a colaborar. Acepta el compromiso de
+   confidencialidad y envía la solicitud.
+3. Espera a que un administrador la apruebe. Mientras tanto, al
+   intentar entrar verás "Tu solicitud de cuenta está pendiente".
+   Si es urgente, avísale a la coordinación.
+
+
+CÓMO APROBAR SOLICITUDES (ADMINISTRADOR)
+----------------------------------------
+1. Cuando hay solicitudes, el menú muestra un número junto a
+   "Usuarios" y en Inicio aparece un aviso.
+2. Entra a Usuarios -> Solicitudes -> "Revisar solicitud".
+3. Elige el rol (normalmente Operador) y los módulos que le
+   corresponden, y presiona "Aprobar cuenta". La persona entra con
+   la contraseña que eligió.
+4. Si no corresponde, presiona "Rechazar" y escribe el motivo.
+
+Para crear una cuenta tú mismo: Usuarios -> "Nuevo usuario". El
+sistema muestra UNA SOLA VEZ una contraseña temporal: cópiala y
+dásela a la persona; al entrar deberá cambiarla.
+
+
+SI ALGUIEN DEJA EL EQUIPO
+-------------------------
+Usuarios -> busca a la persona -> "Desactivar". Pierde el acceso
+de inmediato en todas las computadoras. No la elimines: así se
+conserva el historial en la bitácora.
+
+
+CÓMO CERRAR EL REGISTRO DE CUENTAS
+----------------------------------
+Si no quieres que nadie pueda solicitar cuenta (por ejemplo, en
+modo de red), cierra el sistema, edita config.env y cambia
+    REGISTRATION_ENABLED=true
+por
+    REGISTRATION_ENABLED=false
+Guarda y vuelve a abrir el sistema. Solo el administrador podrá
+crear cuentas.
+
+
+LA BITÁCORA
+-----------
+Menú Bitácora (solo administradores): registra quién entró, quién
+aprobó o cambió cuentas y permisos, y quién creó, modificó o
+EXPORTÓ datos de personas. Puedes filtrar por fechas, acción y
+usuario.
+
+
+NIÑAS Y NIÑOS, ESCUELAS, TUTORES Y VOLUNTARIOS
+----------------------------------------------
+- Los datos de niñas y niños solo los ve quien tiene el módulo
+  "Beneficiarios". Captura solo lo necesario.
+- Registra primero la escuela y al tutor responsable; después,
+  en Niños -> "Registrar niña o niño". Usa "Guardar y registrar
+  otro" para capturar un grupo completo: se conservan la escuela,
+  el grado, el grupo y el tutor.
+- Si alguien ya estaba registrado (mismo nombre y fecha de
+  nacimiento), el sistema te avisa y te lleva a su ficha.
+- Marca "Cuenta con la autorización firmada" solo cuando tengas
+  el papel firmado por la madre, padre o tutor legal. Sin ella no
+  se podrá registrar su carta de Navidad.
+- "Exportar CSV" descarga una lista para Excel. Cada exportación
+  queda registrada en la bitácora: guarda esos archivos en un
+  lugar seguro y bórralos cuando ya no los necesites.
+- En Voluntarios, el recuadro "Tallas de playera" te dice cuántas
+  playeras de cada talla pedir según los filtros que elijas.
+- Nada se borra: "Dar de baja" oculta el registro y puedes
+  reactivarlo después (filtro Estado -> Dados de baja).
+
+
 SI OLVIDAN LA CONTRASEÑA DEL ADMINISTRADOR
 ------------------------------------------
+(Si es otra persona del personal, el administrador usa
+Usuarios -> "Restablecer contraseña".)
 1. Cierra el sistema (cierra la ventana negra).
 2. Abre la carpeta del programa (donde está SonarDespierto.bat).
 3. Haz clic en la barra de direcciones de la carpeta, escribe

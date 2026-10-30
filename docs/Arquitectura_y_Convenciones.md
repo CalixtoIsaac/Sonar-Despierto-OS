@@ -102,6 +102,8 @@ Precedencia: **variables de entorno > `{DATA_DIR}/config.env` > `.env` (raíz) >
 | `FIRST_ADMIN_PASSWORD` | vacío → temporal en `CREDENCIALES_INICIALES.txt` | Solo si la BD no tiene usuarios |
 | `LOGIN_MAX_ATTEMPTS` / `LOGIN_WINDOW_MINUTES` | `5` / `15` | Límite de intentos fallidos por (IP, correo) |
 | `MAX_UPLOAD_MB` | `5` | Fotos de cartas (Fase 4) |
+| `REGISTRATION_ENABLED` | `true` | `false` → nadie puede solicitar cuenta en `/registro` (ADR-0008) |
+| `REGISTER_MAX_ATTEMPTS` / `REGISTER_WINDOW_MINUTES` | `5` / `60` | Solicitudes de cuenta permitidas por equipo en la ventana |
 
 `.env`, `secret.key`, `CREDENCIALES_INICIALES.txt`, `.data/`, `node_modules/` y `dist/` **nunca** se suben a git.
 
