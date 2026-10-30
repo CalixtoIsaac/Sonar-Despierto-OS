@@ -135,7 +135,42 @@ async function adminSession(overrides = {}) {
   return { user, token: await login(user.email, password) };
 }
 
+// ---------- Fase 3: cuerpos válidos de personas ----------
+let personCounter = 0;
+const uniquePhone = () => `229${String(1000000 + (++personCounter)).slice(-7)}`;
+
+function schoolPayload(overrides = {}) {
+  return { name: `Primaria Benito Juárez ${++personCounter}`, cct: null, zone: 'Centro', address: 'Av. Independencia 100',
+    contact_name: 'Mtra. Rosa', contact_phone: '2290001122', ...overrides };
+}
+function tutorPayload(overrides = {}) {
+  return { first_name: 'Carmen', last_name: `Ruiz ${++personCounter}`, phone: uniquePhone(), position: 'Profesora 3°A', ...overrides };
+}
+function volunteerPayload(overrides = {}) {
+  return {
+    first_name: 'Luis', last_name: `Hernández ${++personCounter}`, email: null, phone: uniquePhone(), birth_date: '1998-05-10',
+    city: 'Veracruz', occupation: 'Estudiante', emergency_contact_name: 'María Cruz', emergency_contact_phone: '2297776655',
+    emergency_contact_relationship: 'Madre', shirt_size: 'M', area_of_interest: 'LOGISTICA',
+    medical_notes: 'Alergia a la penicilina', accepts_privacy: true, ...overrides
+  };
+}
+function childPayload(overrides = {}) {
+  return {
+    first_name: 'Sofía', last_name: `Cruz ${++personCounter}`, birth_date: '2017-03-02', gender: 'NINA', grade: '3° primaria',
+    group_name: 'B', guardian_name: 'Rosa Cruz', guardian_relationship: 'Madre', guardian_phone: '2290001122',
+    guardian_consent: true, notes: 'Alergia al cacahuate', ...overrides
+  };
+}
+
+/** Sesión de un OPERADOR con los módulos indicados: { user, token }. */
+async function operatorSession(modules) {
+  const { user, password } = makeUser({ modules });
+  return { user, token: await login(user.email, password) };
+}
+
 module.exports = {
+  baseUrl: () => baseUrl,
   dataDir, start, stop, resetDb, request, makeUser, login, auditActions, auditRows,
-  registerPayload, pendingUser, adminSession
+  registerPayload, pendingUser, adminSession, operatorSession,
+  schoolPayload, tutorPayload, volunteerPayload, childPayload
 };

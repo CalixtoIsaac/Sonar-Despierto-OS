@@ -113,17 +113,20 @@ const Bitacora = (() => {
     async function renderChip() {
       const el = container.querySelector('[data-chip]');
       if (!params.objeto) { el.innerHTML = ''; return; }
-      let label = `Usuario #${params.objeto}`;
-      try { label = (await UI.api(`/users/${Number(params.objeto)}`)).user.email; } catch { /* puede estar eliminada */ }
+      const entity = params.entidad || 'users';
+      let label = `${Audit.ENTITY_LABEL[entity] || entity} #${params.objeto}`;
+      if (entity === 'users') {
+        try { label = (await UI.api(`/users/${Number(params.objeto)}`)).user.email; } catch { /* puede estar eliminada */ }
+      }
       el.innerHTML = `<p class="chip-row"><span class="chip">Sobre: ${esc(label)}
         <button type="button" class="chip-x" aria-label="Quitar filtro">${UI.icon('x')}</button></span></p>`;
-      el.querySelector('.chip-x').addEventListener('click', () => { setParams({ objeto: null, page: null }); renderChip(); });
+      el.querySelector('.chip-x').addEventListener('click', () => { setParams({ objeto: null, entidad: null, page: null }); renderChip(); });
     }
 
     function query() {
       const range = Fechas.localDayRangeToUtc(params.desde, params.hasta);
       const q = { page: Number(params.page) || 1, page_size: 50, action: params.accion, actor_id: params.usuario, ...range };
-      if (params.objeto) { q.entity = 'users'; q.entity_id = params.objeto; }
+      if (params.objeto) { q.entity = params.entidad || 'users'; q.entity_id = params.objeto; }
       return q;
     }
 
