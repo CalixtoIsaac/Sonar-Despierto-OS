@@ -115,8 +115,30 @@ async function smokeRegistration(json, admin) {
   }
 }
 
-/** Fase 3: personas (se completa en la F3). */
-async function smokePeople() {}
+/** Fase 3: personas — duplicado → 409, exportación en bitácora, niños solo con BENEFICIARIOS. */
+async function smokePeople(json, admin) {
+  const expect = (cond, msg) => { if (!cond) throw new Error(`personas: ${msg}`); };
+  const post = (url, body, headers = admin) => json(url, { method: 'POST', headers, body: JSON.stringify(body) });
+  const school = await post('/api/schools', { name: 'Escuela de Humo', zone: 'Centro' });
+  expect(school.status === 201, `escuela ${school.status}`);
+  const child = { first_name: 'Niña', last_name: 'De Humo', birth_date: '2017-03-02', school_id: school.body.school.id,
+    guardian_name: 'Mamá De Humo', guardian_consent: true };
+  expect((await post('/api/children', child)).status === 201, 'alta de niña o niño');
+  const dup = await post('/api/children', { ...child, first_name: 'NIÑA', last_name: 'de humo' });
+  expect(dup.status === 409 && dup.body.code === 'DUPLICATE_CHILD' && dup.body.existing_id, 'duplicado → 409');
+  const csv = await json('/api/children/export', { headers: admin });
+  expect(csv.status === 200 && String(csv.body).includes('Mamá De Humo'), 'exportación CSV');
+  const audit = await json('/api/audit-logs?action=DATA_EXPORTED', { headers: admin });
+  expect(audit.body.total === 1 && audit.body.items[0].entity === 'children', 'exportación en bitácora');
+  const op = await post('/api/users', { email: 'humo-vol@prueba.local', first_name: 'Vol', last_name: 'Humo', modules: ['VOLUNTARIOS'] });
+  const temp = op.body.temporary_password;
+  const opLogin = await post('/api/auth/login', { email: 'humo-vol@prueba.local', password: temp }, {});
+  const changed = await post('/api/auth/change-password', { current_password: temp, new_password: 'HumoVol2026x' },
+    { Authorization: `Bearer ${opLogin.body.token}` });
+  const opAuth = { Authorization: `Bearer ${changed.body.token}` };
+  expect((await json('/api/children', { headers: opAuth })).status === 403, 'niños sin BENEFICIARIOS → 403');
+  expect((await json('/api/volunteers', { headers: opAuth })).status === 200, 'voluntarios con VOLUNTARIOS → 200');
+}
 
 async function main() {
   if (!fs.existsSync(path.join(ROOT, 'node_modules', 'better-sqlite3'))) fail('Primero ejecuta: npm install');

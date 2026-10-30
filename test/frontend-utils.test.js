@@ -98,3 +98,36 @@ test('Audit: espejo del catálogo, etiquetas, grupos y textos del detalle', () =
   assert.equal(d('USER_DELETED', { email: 'a@b.com', account_status: 'RECHAZADA' }), 'a@b.com (rechazada)');
   assert.equal(d('LOGIN', null), '');
 });
+
+test('Catalogos del navegador = lib/catalogs.js; vistas de la F3 protegidas por su módulo', () => {
+  const Catalogos = require('../public/js/catalogos');
+  const cat = require('../lib/catalogs');
+  assert.deepEqual(Catalogos.SHIRT_SIZES, [...cat.SHIRT_SIZES]);
+  assert.deepEqual(Catalogos.VOLUNTEER_AREAS, [...cat.VOLUNTEER_AREAS]);
+  assert.deepEqual(Catalogos.VOLUNTEER_AREA_LABEL, { ...cat.VOLUNTEER_AREA_LABELS });
+  assert.deepEqual(Catalogos.GENDERS, [...cat.GENDERS]);
+  assert.deepEqual(Catalogos.GENDER_LABEL, { ...cat.GENDER_LABELS });
+  assert.equal(Catalogos.CHILD_MAX_AGE, cat.CHILD_MAX_AGE);
+  assert.equal(Catalogos.estadoToActive(''), 'true');
+  assert.equal(Catalogos.estadoToActive('inactivos'), 'false');
+  assert.equal(Catalogos.estadoToActive('todos'), undefined);
+
+  const volOnly = { role: 'OPERADOR', modules: ['VOLUNTARIOS'] };
+  for (const key of ['ninos', 'nino', 'nino-form', 'escuelas', 'tutores']) {
+    assert.equal(Access.viewByKey(key).module, 'BENEFICIARIOS', key);
+    assert.equal(Access.canSee(volOnly, Access.viewByKey(key)), false, key);
+  }
+  for (const key of ['voluntarios', 'voluntario', 'voluntario-form']) assert.ok(Access.canSee(volOnly, Access.viewByKey(key)), key);
+  assert.deepEqual(Access.visibleMenu(volOnly).map((v) => v.key), ['inicio', 'voluntarios', 'perfil']);
+});
+
+test('Audit: textos de la F3 (personas y exportaciones) y enlaces a las fichas', () => {
+  const d = (action, detail, entity = 'children') => Audit.describeAuditDetail({ action, detail, entity });
+  assert.equal(d('RECORD_UPDATED', { changed: ['guardian_consent', 'school_id'] }), 'Campos: consentimiento, escuela');
+  assert.equal(d('DATA_EXPORTED', { format: 'csv', count: 12, filters: { school_id: 3 } }), '12 niñas y niños en CSV (con filtros)');
+  assert.equal(d('DATA_EXPORTED', { format: 'csv', count: 5, filters: {} }, 'volunteers'), '5 voluntarios en CSV');
+  assert.equal(Audit.entityHref('children', 7), '#nino/7');
+  assert.equal(Audit.entityHref('volunteers', 3), '#voluntario/3');
+  assert.equal(Audit.entityHref('schools', 2), '#escuelas?ver=2');
+  assert.equal(Audit.entityHref('users', 1), '#usuario/1');
+});

@@ -238,4 +238,24 @@ details.tech pre {
 }
 .table td.break { overflow-wrap: anywhere; min-width: 140px; }
 .table td.actions-cell { width: 1%; white-space: nowrap; }
-.table-compact td.detail-cell { min-width: 220px; }
+
+
+/* ======================================================================
+ * Vistas de la Fase 3 (personas)
+ * ====================================================================== */
+.table td.num, .table th.num { text-align: right; white-space: nowrap; }
+.row-inactive { opacity: .62; }
+.form-page { gap: 24px; }
+.form-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; padding-top: 8px; border-top: 1px solid var(--border); }
+@media (max-width: 560px) { .form-actions { flex-direction: column-reverse; } .form-actions .btn { width: 100%; } }
+.privacy-note { margin-bottom: 16px; }
+.alert.medical { margin-bottom: 20px; font-size: 16px; }
+.sizes-panel { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; margin-bottom: 20px; padding: 16px 20px; }
+.sizes-title { display: inline-flex; align-items: center; gap: 8px; font-weight: 700; }
+.sizes { display: flex; flex-wrap: wrap; gap: 8px; }
+.size-chip { display: inline-flex; align-items: center; gap: 6px; min-height: 32px; padding: 0 12px; border-radius: 999px; background: var(--sun-bg); color: var(--sun-text); font-size: 15px; }
+.size-chip.zero { background: var(--muted); color: var(--muted-foreground); }
+code { font-family: ui-monospace, 'Cascadia Mono', Consolas, monospace; font-size: .92em; }
+.table-compact td.date-cell { min-width: 96px; }
+.table-compact td.detail-cell { min-width: 170px; }
+.table-compact .badge { white-space: normal; height: auto; padding-top: 3px; padding-bottom: 3px; }
