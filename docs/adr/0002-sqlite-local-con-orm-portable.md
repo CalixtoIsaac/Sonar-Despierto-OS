@@ -1,6 +1,6 @@
 # ADR-0002: SQLite como base de datos del MVP local con capa ORM portable
 
-- **Estado:** Aceptado
+- **Estado:** Reemplazado por [ADR-0009](0009-stack-node-express-sqlite-como-sema.md) (2026-10-23): se conservan SQLite, la carpeta de datos y las reglas de portabilidad; SQLAlchemy y Alembic se sustituyen por `better-sqlite3` y migraciones con `user_version`
 - **Fecha:** 2026-10-17
 - **Decisores:** Equipo de desarrollo (aprobado por Isaac Galeana)
 - **Relacionado con:** `Modelo_Datos.md` (cambia el motor del MVP, no el modelo lógico), `Arquitectura_y_Convenciones.md` §2 y §4, ADR-0003

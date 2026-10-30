@@ -1,0 +1,25 @@
+{
+  "name": "sonar-despierto",
+  "version": "0.2.0",
+  "description": "Sistema de Gestión Soñar Despierto Veracruz. Node.js + Express + SQLite + HTML/CSS/JS sin frameworks (mismo stack que SEMA y My Best DataBase).",
+  "main": "server.js",
+  "private": true,
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js --no-browser",
+    "test": "node --test --test-concurrency=1 \"test/*.test.js\"",
+    "reset-admin": "node scripts/reset-admin.js",
+    "create-user": "node scripts/create-user.js",
+    "empaquetar": "node scripts/empaquetar.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "better-sqlite3": "^12.4.1",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.2",
+    "jsonwebtoken": "^9.0.2"
+  }
+}

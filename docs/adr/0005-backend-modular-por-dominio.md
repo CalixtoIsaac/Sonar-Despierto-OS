@@ -1,6 +1,6 @@
 # ADR-0005: Backend organizado por módulos de dominio
 
-- **Estado:** Aceptado
+- **Estado:** Reemplazado por [ADR-0009](0009-stack-node-express-sqlite-como-sema.md) (2026-10-23): estructura por capas de SEMA (`routes/`, `services/`, `lib/`)
 - **Fecha:** 2026-10-17
 - **Decisores:** Equipo de desarrollo (aprobado por Isaac Galeana)
 - **Relacionado con:** `Arquitectura_y_Convenciones.md` §1 y §3 (reemplaza la estructura por capas técnicas)

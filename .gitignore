@@ -1,21 +1,18 @@
-# Python
-__pycache__/
-*.py[cod]
-.venv/
-venv/
-.pytest_cache/
-.ruff_cache/
-.coverage
-htmlcov/
+# Node
+node_modules/
+coverage/
+npm-debug.log*
 
 # Configuración local y secretos
 .env
 *.env.local
 secret.key
+jwt.secret
 CREDENCIALES_INICIALES.txt
 
 # Datos locales: BD SQLite, logs, archivos subidos (ADR-0003)
 .data/
+data/
 *.db
 *.db-wal
 *.db-shm
@@ -23,15 +20,14 @@ CREDENCIALES_INICIALES.txt
 logs/
 *.log
 
-# Node / frontend
-node_modules/
-frontend/dist/
-frontend/.tanstack/
-coverage/
-
-# Empaquetado (PyInstaller)
-build/
+# Paquete portátil (npm run empaquetar) y restos de la versión Python
 dist/
+build/
+__pycache__/
+.venv/
+.ruff_cache/
+.pytest_cache/
+.tmp-claude/
 
 # Editor / sistema operativo
 .vscode/*

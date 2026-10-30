@@ -1,5 +1,7 @@
 # Especificación de API (MVP) — Soñar Despierto
 
+> 🔄 **Actualización 2026-10-23 (ADR-0009):** el backend es **Node.js + Express** (mismo stack que SEMA y My Best DataBase). Cambios de forma, no de reglas: **base URL `/api`** (antes `/api/v1`); **un solo token** de sesión de 8 h en `token` (sin `refresh_token` ni `POST /auth/refresh`); formato de error **plano** `{ "error": "mensaje", "code": "CODIGO", "details": [...] }` (los códigos y mensajes no cambian); no hay Swagger: esta especificación es la documentación de referencia. Endpoints vigentes de la Fase 1: `POST /api/auth/login` → `{ token, expires_in, user }`, `POST /api/auth/logout` → `204`, `GET /api/auth/me` → `{ user }`, `POST /api/auth/change-password` → `{ token, expires_in, user }`, `GET /api/health`, `GET /api/health/db`. Los esquemas JSON siguen en `snake_case`.
+
 > ⚠️ **Actualización 2026-10-17:** en el MVP local no hay registro público (`POST /auth/register` pasa a la fase de nube) y los roles son `ADMIN`/`OPERADOR` con permisos por módulo (ADR-0004). La autenticación vigente (refresh de 12 h, `logout`, `change-password` con respuesta 200 y nuevos tokens, `PASSWORD_CHANGE_REQUIRED`) está en ADR-0007 y en `fases/Fase_1_Prompts_Task_Document.md` §3.7. Cada fase actualizará su sección de este documento. Donde haya contradicción, mandan los ADR de [`adr/`](adr/README.md).
 
 > **Versión:** 1.0 · **Backend:** FastAPI · **Auth:** JWT (Bearer) · **Base URL:** `/api/v1`
