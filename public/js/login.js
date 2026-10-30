@@ -1,6 +1,6 @@
 /**
- * Pantalla de inicio de sesión. Las cuentas las crea el administrador
- * (en la Fase 2 el personal podrá solicitarlas desde aquí).
+ * Pantalla de inicio de sesión. El personal puede solicitar su cuenta en /registro (ADR-0008)
+ * cuando el registro está habilitado.
  */
 (() => {
   const $ = (id) => document.getElementById(id);
@@ -17,7 +17,8 @@
   UI.hydrateLogos(document);
 
   function showAlert(message, type = 'error') {
-    alertBox.innerHTML = UI.icon(type === 'error' ? 'alert' : 'info') + `<span>${UI.escape(message)}</span>`;
+    const iconName = { error: 'alert', warning: 'clock' }[type] || 'info';
+    alertBox.innerHTML = UI.icon(iconName) + `<span>${UI.escape(message)}</span>`;
     alertBox.className = `alert alert-${type}`;
     alertBox.setAttribute('role', type === 'error' ? 'alert' : 'status');
     alertBox.hidden = false;
@@ -34,6 +35,13 @@
 
   const pending = UI.takeAuthMessage();
   if (pending) showAlert(pending, 'info');
+
+  // Enlace al registro solo si está habilitado (si falla la consulta, se conserva el texto anterior)
+  UI.api('/auth/registration-info', { redirectOn401: false }).then((info) => {
+    if (info && info.enabled) {
+      $('authNote').innerHTML = '¿No tienes cuenta? <a href="/registro"><strong>Solicítala aquí</strong></a>';
+    }
+  }).catch(() => { /* sin cambios */ });
 
   // Botones para mostrar / ocultar la contraseña
   document.querySelectorAll('[data-toggle-password]').forEach((btn) => {
@@ -75,7 +83,7 @@
       location.replace(user.must_change_password ? '/app#cambiar-contrasena' : '/app');
     } catch (err) {
       UI.setBusy(button, false);
-      showAlert(err.message);
+      showAlert(err.message, err.code === 'ACCOUNT_PENDING' ? 'warning' : 'error');
     }
   });
 

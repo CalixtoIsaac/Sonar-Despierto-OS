@@ -72,6 +72,8 @@ async function smokeTest() {
     const me = await json('/api/auth/me', { headers: { Authorization: `Bearer ${changed.body.token}` } });
     if (me.status !== 200 || me.body.user.modules.length !== 7) throw new Error('/api/auth/me');
     if ((await json('/api/_test/cartas')).status !== 404) throw new Error('las rutas de prueba no deben existir en producción');
+    await smokeRegistration(json, { Authorization: `Bearer ${changed.body.token}` });
+    await smokePeople(json, { Authorization: `Bearer ${changed.body.token}` });
     console.log('  PRUEBA DE HUMO OK');
   } finally {
     child.kill();
@@ -79,6 +81,42 @@ async function smokeTest() {
     fs.rmSync(dataDir, { recursive: true, force: true });
   }
 }
+
+/** Fase 2: registro del personal, aprobación, bitácora y desactivación. */
+async function smokeRegistration(json, admin) {
+  const expect = (cond, msg) => { if (!cond) throw new Error(`registro: ${msg}`); };
+  const info = await json('/api/auth/registration-info');
+  expect(info.body.enabled === true, 'registration-info');
+  const reg = await json('/api/auth/register', { method: 'POST', body: JSON.stringify({
+    first_name: 'Prueba', last_name: 'De Humo', email: 'smoke@prueba.local', phone: '2291234567',
+    password: 'HumoSeguro2026', requested_modules: ['CARTAS', 'CALENDARIO'], accepts_confidentiality: true
+  }) });
+  expect(reg.status === 201 && !reg.body.token, `register ${reg.status}`);
+  const body = JSON.stringify({ email: 'smoke@prueba.local', password: 'HumoSeguro2026' });
+  const pending = await json('/api/auth/login', { method: 'POST', body });
+  expect(pending.status === 403 && pending.body.code === 'ACCOUNT_PENDING', 'login pendiente');
+  const summary = await json('/api/users/summary', { headers: admin });
+  expect(summary.body.pending === 1, 'summary.pending');
+  const list = await json('/api/users?account_status=PENDIENTE', { headers: admin });
+  const id = list.body.items[0].id;
+  const approve = await json(`/api/users/${id}/approve`, { method: 'POST', headers: admin,
+    body: JSON.stringify({ role: 'OPERADOR', modules: ['CARTAS'] }) });
+  expect(approve.status === 200, 'approve');
+  const ok = await json('/api/auth/login', { method: 'POST', body });
+  expect(ok.status === 200 && ok.body.user.modules.join() === 'CARTAS' && ok.body.user.must_change_password === false, 'login aprobado');
+  const audit = await json('/api/audit-logs?action=ACCOUNT_APPROVED', { headers: admin });
+  expect(audit.body.total === 1, 'bitácora');
+  await json(`/api/users/${id}`, { method: 'PATCH', headers: admin, body: JSON.stringify({ is_active: false }) });
+  const me = await json('/api/auth/me', { headers: { Authorization: `Bearer ${ok.body.token}` } });
+  expect(me.status === 401, 'sesión cortada al desactivar');
+  for (const page of ['/registro', '/app']) {
+    const r = await json(page);
+    expect(r.status === 200 && String(r.body).includes('<!DOCTYPE html>'), `página ${page}`);
+  }
+}
+
+/** Fase 3: personas (se completa en la F3). */
+async function smokePeople() {}
 
 async function main() {
   if (!fs.existsSync(path.join(ROOT, 'node_modules', 'better-sqlite3'))) fail('Primero ejecuta: npm install');

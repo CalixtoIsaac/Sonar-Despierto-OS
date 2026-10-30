@@ -4,7 +4,9 @@
  *  Seguridad     UI.escape(texto)
  *  Sesión        UI.getToken() · UI.getUser() · UI.setSession() · UI.setUser() · UI.clearSession()
  *  API           UI.api('/ruta', { method, body })  → agrega el token y lanza Error si falla
- *  Componentes   UI.toast() · UI.confirm() · UI.formModal() · UI.setBusy()
+ *                UI.buildQuery({ a: 1, b: ['x', 'y'] }) → "?a=1&b=x&b=y" · UI.onForbidden(fn)
+ *                UI.download('/ruta', nombre) → descarga un archivo de la API con la sesión
+ *  Componentes   UI.toast() · UI.confirm() · UI.formModal() · UI.dialog() · UI.setBusy()
  *  Iconos        UI.icon('nombre') · UI.hydrateIcons(raiz)
  *  Formato       UI.formatDate() · UI.initials()
  *  Marca         UI.logo({ size })
@@ -17,7 +19,9 @@ const UI = (() => {
   const USER_KEY = 'sd.user';
   const MESSAGE_KEY = 'sd.authMessage';
   const SESSION_CODES = ['NOT_AUTHENTICATED', 'TOKEN_EXPIRED', 'TOKEN_INVALID'];
+  const FORBIDDEN_CODES = ['MODULE_FORBIDDEN', 'FORBIDDEN'];
   let uid = 0;
+  let forbiddenHandler = null;
 
   // ---------- Seguridad ----------
   const ESCAPES = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
@@ -56,6 +60,24 @@ const UI = (() => {
   }
 
   // ---------- API ----------
+  /**
+   * "?a=1&b=x&b=y": omite undefined, null y ""; los arreglos se repiten; "" si no queda nada.
+   */
+  function buildQuery(params = {}) {
+    const qs = new URLSearchParams();
+    for (const [key, value] of Object.entries(params)) {
+      for (const v of [].concat(value)) {
+        if (v === undefined || v === null || v === '') continue;
+        qs.append(key, String(v));
+      }
+    }
+    const text = qs.toString();
+    return text ? `?${text}` : '';
+  }
+
+  /** Ante un 403 MODULE_FORBIDDEN o FORBIDDEN llama handler(code) (después se lanza el error). */
+  function onForbidden(handler) { forbiddenHandler = handler; }
+
   /**
    * Llama a la API del servidor.
    *   await UI.api('/auth/me')                                → GET
@@ -96,6 +118,9 @@ const UI = (() => {
     if (res.status === 403 && data && data.code === 'PASSWORD_CHANGE_REQUIRED' && location.pathname === '/app') {
       location.hash = '#cambiar-contrasena';
     }
+    if (res.status === 403 && data && FORBIDDEN_CODES.includes(data.code) && forbiddenHandler) {
+      try { forbiddenHandler(data.code); } catch { /* el manejador no debe romper la petición */ }
+    }
     if (!res.ok) {
       const err = new Error((data && data.error) || 'Ocurrió un error inesperado.');
       err.status = res.status;
@@ -106,6 +131,45 @@ const UI = (() => {
     }
     if (res.status === 204) return null;
     return data;
+  }
+
+  /** Descarga un archivo de la API (p. ej. CSV) con la sesión y lo guarda con el nombre que indique el servidor. */
+  async function download(path, fallbackName = 'descarga.csv') {
+    const headers = {};
+    const token = getToken();
+    if (token) headers.Authorization = `Bearer ${token}`;
+    let res;
+    try {
+      res = await fetch('/api' + path, { headers });
+    } catch {
+      const err = new Error('No se pudo conectar con el servidor. Verifica que el programa Soñar Despierto siga abierto.');
+      err.code = 'NETWORK_ERROR';
+      throw err;
+    }
+    if (!res.ok) {
+      let data = null;
+      try { data = await res.json(); } catch { /* sin cuerpo JSON */ }
+      if (res.status === 401 && data && SESSION_CODES.includes(data.code)) {
+        clearSession(data.error);
+        location.replace('/');
+      }
+      if (res.status === 403 && data && FORBIDDEN_CODES.includes(data.code) && forbiddenHandler) forbiddenHandler(data.code);
+      const err = new Error((data && data.error) || 'No se pudo descargar el archivo.');
+      err.status = res.status;
+      err.code = (data && data.code) || 'HTTP_ERROR';
+      throw err;
+    }
+    const disposition = res.headers.get('content-disposition') || '';
+    const match = /filename="?([^";]+)"?/i.exec(disposition);
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = match ? match[1] : fallbackName;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
 
   // ---------- Iconos (trazos de 24×24, estilo Lucide como el diseño de Lovable) ----------
@@ -141,7 +205,23 @@ const UI = (() => {
     progress: '<path d="M12 3a9 9 0 1 0 9 9"/><path d="M12 8v4l2.5 2.5"/>',
     inbox: '<path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.5 5h13L22 12v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6z"/>',
     alert: '<circle cx="12" cy="12" r="9"/><path d="M12 8v4M12 16h.01"/>',
-    info: '<circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/>'
+    info: '<circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/>',
+    scroll: '<path d="M19 17V5a2 2 0 0 0-2-2H4"/><path d="M8 21h12a2 2 0 0 0 2-2v-1a1 1 0 0 0-1-1H11a1 1 0 0 0-1 1v1a2 2 0 1 1-4 0V5a2 2 0 1 0-4 0v2a1 1 0 0 0 1 1h3"/><path d="M14 8H10M14 12h-4"/>',
+    userPlus: '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6M22 11h-6"/>',
+    userCheck: '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="m16 11 2 2 4-4"/>',
+    userX: '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="m17 8 5 5M22 8l-5 5"/>',
+    download: '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/><path d="M12 15V3"/>',
+    x: '<path d="M18 6 6 18M6 6l12 12"/>',
+    arrowLeft: '<path d="m12 19-7-7 7-7"/><path d="M19 12H5"/>',
+    chevronLeft: '<path d="m15 18-6-6 6-6"/>',
+    chevronRight: '<path d="m9 18 6-6-6-6"/>',
+    copy: '<rect x="8" y="8" width="14" height="14" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>',
+    phone: '<path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z"/>',
+    refresh: '<path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/><path d="M8 16H3v5"/>',
+    heart: '<path d="M19 14c1.5-1.5 3-3.2 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.8 0-3 .5-4.5 2-1.5-1.5-2.7-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4 3 5.5l7 7z"/>',
+    shirt: '<path d="M20.4 3.5 16 2a4 4 0 0 1-8 0L3.6 3.5a2 2 0 0 0-1.3 2.2l.6 3.5a1 1 0 0 0 1 .8H6v10c0 1.1.9 2 2 2h8a2 2 0 0 0 2-2V10h2.1a1 1 0 0 0 1-.8l.6-3.5a2 2 0 0 0-1.3-2.2z"/>',
+    filter: '<path d="M22 3H2l8 9.5V19l4 2v-8.5z"/>',
+    mapPin: '<path d="M20 10c0 5-5.5 10.2-7.4 11.8a1 1 0 0 1-1.2 0C9.5 20.2 4 15 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/>'
   };
 
   function icon(name, extraClass = '') {
@@ -380,9 +460,11 @@ const UI = (() => {
   return {
     escape,
     getToken, getUser, setUser, setSession, clearSession, takeAuthMessage,
-    api,
+    api, buildQuery, onForbidden, download,
     icon, hydrateIcons, logo, hydrateLogos,
     formatDate, initials,
-    setBusy, toast, confirm, formModal
+    setBusy, toast, confirm, formModal, dialog: openDialog
   };
 })();
+
+if (typeof module !== 'undefined') module.exports = UI; // UI.buildQuery en las pruebas con node:test

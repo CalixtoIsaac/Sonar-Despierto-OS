@@ -36,3 +36,10 @@
   .auth-aside { display: none; }
   .auth-mobile-logo { display: block; }
 }
+
+/* Registro (Fase 2) */
+.auth-wrap-wide { max-width: 640px; padding: 24px 0; }
+.auth-note a { font-weight: 700; }
+.success-panel { display: flex; flex-direction: column; align-items: flex-start; gap: 14px; }
+.success-panel h2 { font-size: 26px; }
+.auth-main:has(.auth-wrap-wide) { align-items: flex-start; }

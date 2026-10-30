@@ -12,7 +12,7 @@ const Inicio = (() => {
   function card(view) {
     const info = view.module ? Access.MODULE_INFO[view.module] : null;
     const description = view.description || (info && info.description) || '';
-    const phase = view.phase || (info && info.phase);
+    const phase = view.ready ? null : (view.phase || (info && info.phase));
     return `
       <a class="module-card" href="#${view.key}">
         <span class="module-card-head">
@@ -24,9 +24,24 @@ const Inicio = (() => {
       </a>`;
   }
 
+  async function showPending(container) {
+    const slot = container.querySelector('#pendingSlot');
+    try {
+      const { pending } = await UI.api('/users/summary');
+      if (!pending || !slot.isConnected) return;
+      slot.innerHTML = `
+        <section class="card panel callout" role="status">
+          <span class="callout-icon">${UI.icon('userCheck')}</span>
+          <p>Tienes <strong>${pending}</strong> ${pending === 1 ? 'solicitud' : 'solicitudes'} de cuenta por revisar.</p>
+          <a class="btn btn-primary" href="#usuarios?tab=solicitudes">Revisar</a>
+        </section>`;
+    } catch { /* el aviso no es crítico */ }
+  }
+
   function mount(container, { user }) {
     const items = Access.visibleMenu(user).filter((v) => v.module || v.adminOnly);
     container.innerHTML = `
+      <div id="pendingSlot"></div>
       <section class="page-header">
         <div>
           <h2>${greeting()}, ${UI.escape(user.first_name)}</h2>
@@ -43,6 +58,7 @@ const Inicio = (() => {
                <p class="muted">Pide al administrador que te habilite los que necesites.</p>
              </div>`}
       </section>`;
+    if (user.role === 'ADMIN') showPending(container);
   }
 
   return { mount };

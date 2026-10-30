@@ -6,6 +6,13 @@
 const Access = (() => {
   const ROLE_LABEL = { ADMIN: 'Administrador', OPERADOR: 'Operador' };
 
+  // Estados de cuenta (espejo de lib/modules.js, ADR-0008)
+  const ACCOUNT_STATUSES = ['PENDIENTE', 'APROBADA', 'RECHAZADA'];
+  const ACCOUNT_STATUS_LABEL = { PENDIENTE: 'Pendiente de aprobación', APROBADA: 'Aprobada', RECHAZADA: 'Rechazada' };
+
+  // Módulos con datos de niñas y niños (se marcan al asignar permisos)
+  const SENSITIVE_MODULES = ['BENEFICIARIOS'];
+
   // El orden define el orden del menú
   const MODULE_KEYS = ['VOLUNTARIOS', 'BENEFICIARIOS', 'EVENTOS', 'CARTAS', 'CALENDARIO', 'INVENTARIO', 'REPORTES'];
 
@@ -20,11 +27,12 @@ const Access = (() => {
   };
 
   /**
-   * Vistas de la aplicación (#vista en la URL). section agrupa el menú.
-   * module → requiere ese permiso; adminOnly → solo ADMIN; hidden → no aparece en el menú.
+   * Vistas de la aplicación (#vista[/id][?parámetros] en la URL). section agrupa el menú.
+   * module → requiere ese permiso; adminOnly → solo ADMIN; hidden → no aparece en el menú;
+   * ready → ya está construida (las demás muestran "Próximamente").
    */
   const VIEWS = [
-    { key: 'inicio', label: 'Inicio', icon: 'home', section: 'General' },
+    { key: 'inicio', label: 'Inicio', icon: 'home', section: 'General', ready: true },
     { key: 'calendario', label: 'Calendario', icon: 'calendarRange', module: 'CALENDARIO', section: 'Operación' },
     { key: 'eventos', label: 'Eventos', icon: 'calendarDays', module: 'EVENTOS', section: 'Operación' },
     { key: 'cartas', label: 'Cartas', icon: 'mail', module: 'CARTAS', section: 'Operación' },
@@ -36,11 +44,14 @@ const Access = (() => {
     { key: 'voluntarios', label: 'Voluntarios', icon: 'users', module: 'VOLUNTARIOS', section: 'Personas' },
     { key: 'inventario', label: 'Inventario', icon: 'boxes', module: 'INVENTARIO', section: 'Recursos' },
     { key: 'reportes', label: 'Reportes', icon: 'chart', module: 'REPORTES', section: 'Recursos' },
-    { key: 'usuarios', label: 'Usuarios', icon: 'userCog', adminOnly: true, section: 'Administración', phase: 2,
+    { key: 'usuarios', label: 'Usuarios', icon: 'userCog', adminOnly: true, section: 'Administración', ready: true,
       description: 'Solicitudes de cuenta, alta de usuarios y asignación de módulos.' },
-    { key: 'perfil', label: 'Mi perfil', icon: 'userCircle', section: 'Mi cuenta' },
-    { key: 'cambiar-contrasena', label: 'Cambiar contraseña', icon: 'key', hidden: true },
-    { key: 'sin-acceso', label: 'Sin acceso', icon: 'lock', hidden: true }
+    { key: 'usuario', label: 'Detalle de usuario', icon: 'userCog', adminOnly: true, hidden: true, ready: true, parent: 'usuarios' },
+    { key: 'bitacora', label: 'Bitácora', icon: 'scroll', adminOnly: true, section: 'Administración', ready: true,
+      description: 'Registro de inicios de sesión y cambios en cuentas, permisos y datos de personas.' },
+    { key: 'perfil', label: 'Mi perfil', icon: 'userCircle', section: 'Mi cuenta', ready: true },
+    { key: 'cambiar-contrasena', label: 'Cambiar contraseña', icon: 'key', hidden: true, ready: true },
+    { key: 'sin-acceso', label: 'Sin acceso', icon: 'lock', hidden: true, ready: true }
   ];
 
   const viewByKey = (key) => VIEWS.find((v) => v.key === key) || null;
@@ -57,6 +68,30 @@ const Access = (() => {
   function visibleMenu(user) {
     if (!user || user.must_change_password) return [];
     return VIEWS.filter((v) => !v.hidden && canSee(user, v));
+  }
+
+  /**
+   * '#usuario/7?tab=x' → { key: 'usuario', id: '7', params: { tab: 'x' } }. Vacío → inicio.
+   */
+  function parseHash(hash) {
+    const text = String(hash || '').replace(/^#/, '');
+    const q = text.indexOf('?');
+    const path = q >= 0 ? text.slice(0, q) : text;
+    const query = q >= 0 ? text.slice(q + 1) : '';
+    const [key, id] = path.split('/');
+    const params = {};
+    for (const [k, v] of new URLSearchParams(query)) params[k] = v;
+    return { key: key || 'inicio', id: id || null, params };
+  }
+
+  /** Hash a partir de vista, id y parámetros (omite los vacíos). */
+  function buildHash(key, id, params = {}) {
+    const qs = new URLSearchParams();
+    for (const [k, v] of Object.entries(params)) {
+      if (v !== undefined && v !== null && v !== '') qs.append(k, String(v));
+    }
+    const query = qs.toString();
+    return `#${key}${id ? `/${id}` : ''}${query ? `?${query}` : ''}`;
   }
 
   // ---------- Contraseñas (espejo de lib/security.js) ----------
@@ -76,7 +111,8 @@ const Access = (() => {
   }
 
   return {
-    ROLE_LABEL, MODULE_KEYS, MODULE_INFO, VIEWS, viewByKey, canSee, visibleMenu,
+    ROLE_LABEL, ACCOUNT_STATUSES, ACCOUNT_STATUS_LABEL, SENSITIVE_MODULES,
+    MODULE_KEYS, MODULE_INFO, VIEWS, viewByKey, canSee, visibleMenu, parseHash, buildHash,
     PASSWORD_POLICY_MESSAGE, meetsPasswordPolicy, passwordStrength
   };
 })();

@@ -3,7 +3,6 @@
  * tiene una contraseña temporal: must_change_password = true.
  */
 const CambiarContrasena = (() => {
-  const LEVEL_LABEL = { 1: 'Débil', 2: 'Aceptable', 3: 'Fuerte' };
   const FIELDS = [
     { name: 'current_password', label: 'Contraseña actual', autocomplete: 'current-password' },
     { name: 'new_password', label: 'Nueva contraseña', autocomplete: 'new-password' },
@@ -16,11 +15,6 @@ const CambiarContrasena = (() => {
         <label for="cp-${f.name}">${f.label}</label>
         <input class="input" id="cp-${f.name}" name="${f.name}" type="password" autocomplete="${f.autocomplete}"
                aria-describedby="cp-${f.name}-error">
-        ${f.name === 'new_password' ? `
-          <div class="strength" id="cpStrength" data-level="1" aria-live="polite">
-            <div class="strength-bars" aria-hidden="true"><span></span><span></span><span></span></div>
-            <p>Seguridad: <strong>Débil</strong></p>
-          </div>` : ''}
         <p class="field-error" id="cp-${f.name}-error" hidden></p>
       </div>`;
   }
@@ -52,12 +46,7 @@ const CambiarContrasena = (() => {
       else input.removeAttribute('aria-invalid');
     }
 
-    form.elements.new_password.addEventListener('input', () => {
-      const level = Access.passwordStrength(value('new_password'));
-      const meter = container.querySelector('#cpStrength');
-      meter.dataset.level = String(level);
-      meter.querySelector('strong').textContent = LEVEL_LABEL[level];
-    });
+    Components.passwordStrength(form.elements.new_password);
 
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
