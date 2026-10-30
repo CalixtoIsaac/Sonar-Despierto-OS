@@ -4,6 +4,27 @@
 
 > ⚠️ **Actualización 2026-10-17:** el frontend es una SPA React basada en el diseño de Lovable (ADR-0001); las rutas `.html` se reinterpretan como rutas `/app/...` (ver `fases/Fase_1_Prompts_Task_Document.md` §3.9). En el MVP local solo acceden ADMIN y OPERADOR (ADR-0004): las pantallas de voluntario y tutor con cuenta propia (P02, P06, P07, P19–P21, P24) quedan para la fase de nube y su función la opera el personal. Donde haya contradicción, mandan los ADR de [`adr/`](adr/README.md).
 
+> ✅ **Pantallas vigentes (Fases 1–3, 2026-10-29):** la tabla siguiente lista las pantallas construidas y su ruta real. Las descripciones P01–P24 de §3 son el diseño original; para las pantallas ya construidas mandan esta tabla y los documentos de fase.
+
+| Pantalla | Ruta | Acceso | Notas |
+|---|---|---|---|
+| P01 Login | `/` | 🌐 | Enlace "¿No tienes cuenta? **Solicítala aquí**" si `REGISTRATION_ENABLED=true`; aviso informativo (amarillo) si la cuenta está pendiente |
+| P02 Solicitud de cuenta del personal (reinterpreta "Registro de voluntario") | `/registro` | 🌐 | Datos, contraseña con indicador de seguridad, selector de módulos (con insignia "Datos de menores" en Beneficiarios), nota y compromiso de confidencialidad → "¡Solicitud enviada!" |
+| P03 Mi perfil | `/app#perfil` | 🔑 | Nombre, apellidos y teléfono editables; correo, rol y módulos de solo lectura |
+| P04 Cambiar contraseña | `/app#cambiar-contrasena` | 🔑 | Obligatoria con contraseña temporal |
+| Inicio | `/app#inicio` | 🔑 | Módulos permitidos; para ADMIN, aviso "Tienes N solicitudes de cuenta por revisar" |
+| P10 Usuarios | `/app#usuarios`, `/app#usuario/<id>` | ADMIN | Pestañas Solicitudes / Usuarios; revisar, aprobar, rechazar, eliminar solicitudes; alta con contraseña temporal; editar rol y módulos; restablecer; activar/desactivar; detalle con actividad. Píldora con el número de pendientes en el menú |
+| P10b Bitácora | `/app#bitacora` | ADMIN | Filtros por fechas (hora de Veracruz), acción, usuario y objeto; detalle técnico desplegable |
+| P08 Voluntarios | `/app#voluntarios` | `VOLUNTARIOS` | Filtros (área, talla, estado), panel de tallas, exportar CSV |
+| P09 Detalle de voluntario | `/app#voluntario/<id>`, `/app#voluntario-form[/<id>]` | `VOLUNTARIOS` | Notas médicas resaltadas; formulario por secciones con aviso de privacidad |
+| P11 Escuelas | `/app#escuelas` | `BENEFICIARIOS` | Alta y edición en diálogo, baja lógica, "Ver niñas y niños" |
+| Tutores | `/app#tutores` | `BENEFICIARIOS` | Responsables de grupo, con escuela opcional |
+| P12 Niñas y niños | `/app#ninos` | `BENEFICIARIOS` | Filtros (escuela o "Sin escuela", tutor, consentimiento, estado), insignia de consentimiento, exportar CSV |
+| P13 Registro de niña o niño | `/app#nino-form[/<id>]` | `BENEFICIARIOS` | Secciones, edad calculada, "Guardar y registrar otro" (conserva escuela, grado, grupo y tutor), aviso de duplicado con enlace |
+| P14 Ficha de niña o niño | `/app#nino/<id>` | `BENEFICIARIOS` | Ficha, escuela, tutor, tutor legal y consentimiento; cartas en la F4 |
+
+Componentes compartidos: `ui-kit.js` (API, diálogos, `buildQuery`, `download`), `components.js` (selector de módulos, paginación, contraseña temporal, estados, formularios con errores por campo), `listado.js` (pantallas de listado), `fechas.js`, `phone.js`, `audit.js`, `catalogos.js`. Todas las pantallas tienen estados de carga, vacío y error y se probaron a 360 px en tema claro y oscuro.
+
 > **Versión:** 1.0 · **Frontend:** HTML5 + CSS3 + JavaScript Vanilla (multipágina) · **Idioma:** Español
 > **Documentos relacionados:** `API_Spec.md` (endpoints que consume cada pantalla), `Modelo_Datos.md`
 

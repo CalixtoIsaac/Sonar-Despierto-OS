@@ -42,7 +42,7 @@ sistema pide cambiarla (y el archivo se borra solo).
 | `npm run dev` | Desarrollo: reinicia el servidor al guardar (`node --watch`), sin abrir el navegador |
 | `npm start` | Ejecución normal (abre el navegador) |
 | `npm test` | Pruebas automáticas (`node:test`) |
-| `npm run create-user -- --email ana@sonardespierto.org --first-name Ana --last-name Prueba --role OPERADOR --modules CARTAS,CALENDARIO` | Crear un usuario desde la consola (hasta la Fase 2) |
+| `npm run create-user -- --email ana@sonardespierto.org --first-name Ana --last-name Prueba --role OPERADOR --modules CARTAS,CALENDARIO` | Crear un usuario desde la consola (soporte; lo normal es el menú Usuarios) |
 | `npm run reset-admin [-- --email CORREO]` | Contraseña temporal para el administrador (o ese correo) |
 | `npm run empaquetar` | Pruebas + paquete portátil `dist\SonarDespierto` + prueba de humo |
 
@@ -83,8 +83,8 @@ Contiene `sonar.db` (SQLite), `secret.key`, `config.env`, `logs\sonar.log`, `upl
 ```text
 server.js · SonarDespierto.bat · package.json
 lib/        configuración, BD y migraciones, seguridad, middlewares de permisos, arranque
-services/   casos de uso y SQL (auth, users, audit)
-routes/     capa HTTP (/api/health, /api/auth)
+services/   casos de uso y SQL (auth, users, audit, records, schools, tutors, volunteers, children)
+routes/     capa HTTP (/api/health, auth, users, audit-logs, schools, tutors, volunteers, children)
 public/     login.html, app.html, css/, js/ (ui-kit, access, vistas), vendor/fonts/
 scripts/    reset-admin, create-user, empaquetar, crear-acceso-directo.ps1
 test/       pruebas con node:test
@@ -101,6 +101,10 @@ docs/       requerimientos, modelo de datos, API, pantallas, ADR y fases
   login, cambio obligatorio de contraseña, roles ADMIN/OPERADOR con permisos por módulo, bitácora,
   menú según permisos, arranque local con instancia única, modo LAN, `--reset-admin` y paquete
   portátil con prueba de humo.
-- **Fase 2 — Usuarios, auto-registro y bitácora:** siguiente
-  ([documento de la fase](docs/fases/Fase_2_Prompts_Task_Document.md)).
-- Fases 3–8: ver la [hoja de ruta](docs/Roadmap_Fases.md).
+- **Fase 2 — Usuarios, auto-registro y bitácora:** ✅ (2026-10-29). El personal solicita su cuenta en
+  `/registro` y un administrador la aprueba y le asigna módulos (ADR-0008); gestión de usuarios, perfil
+  editable y visor de bitácora ([documento de la fase](docs/fases/Fase_2_Prompts_Task_Document.md)).
+- **Fase 3 — Personas:** ✅ (2026-10-29). Voluntarios, escuelas, tutores y niñas y niños con detección de
+  duplicados (`409`), consentimiento del tutor legal, exportación CSV registrada en la bitácora y datos de
+  menores solo con el módulo Beneficiarios ([contratos](docs/fases/Fase_3_Contratos.md), ADR-0010).
+- **Siguiente:** Fase 4 — Eventos y cartas de Navidad. Fases 5–8: ver la [hoja de ruta](docs/Roadmap_Fases.md).
