@@ -40,11 +40,18 @@ async function stop() {
   fs.rmSync(dataDir, { recursive: true, force: true });
 }
 
-/** Borra todos los datos entre pruebas y reinicia el límite de intentos. */
+/** Borra todos los datos entre pruebas (todas las tablas) y reinicia los límites de intentos. */
 function resetDb() {
   const db = getDb();
-  db.exec('DELETE FROM audit_logs; DELETE FROM user_module_permissions; DELETE FROM users;');
+  const tables = db.prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%'").all();
+  db.pragma('foreign_keys = OFF');
+  try {
+    db.transaction(() => { for (const t of tables) db.exec(`DELETE FROM "${t.name}"`); })();
+  } finally {
+    db.pragma('foreign_keys = ON');
+  }
   auth.loginLimiter.resetAll();
+  auth.registerLimiter.resetAll();
   try { fs.unlinkSync(users.credentialsPath()); } catch { /* no existe */ }
 }
 
@@ -90,4 +97,45 @@ function auditActions() {
   return getDb().prepare('SELECT action FROM audit_logs ORDER BY id').all().map((r) => r.action);
 }
 
-module.exports = { dataDir, start, stop, resetDb, request, makeUser, login, auditActions };
+/** Filas de la bitácora con detail parseado. */
+function auditRows() {
+  return getDb().prepare('SELECT * FROM audit_logs ORDER BY id').all()
+    .map((r) => ({ ...r, detail: r.detail ? JSON.parse(r.detail) : null }));
+}
+
+let regCounter = 0;
+/** Cuerpo válido de POST /api/auth/register (correo único por llamada). */
+function registerPayload(overrides = {}) {
+  return {
+    first_name: 'Ana',
+    last_name: 'López Pérez',
+    email: `solicitud${++regCounter}@correo.com`,
+    phone: '229 123 4567',
+    password: 'Segura123',
+    requested_modules: ['CARTAS', 'CALENDARIO'],
+    note: 'Coordino el acopio de la zona norte.',
+    accepts_confidentiality: true,
+    ...overrides
+  };
+}
+
+/** Crea una solicitud vía la API. Devuelve { id, email, password }. */
+async function pendingUser(overrides = {}) {
+  const body = registerPayload(overrides);
+  const r = await request('POST', '/api/auth/register', { body });
+  if (r.status !== 201) throw new Error(`register ${r.status}: ${r.text}`);
+  auth.registerLimiter.resetAll();
+  const row = users.getUserByEmail(body.email);
+  return { id: row.id, email: row.email, password: body.password };
+}
+
+/** Sesión de un ADMIN aprobado y con la contraseña ya cambiada: { user, token }. */
+async function adminSession(overrides = {}) {
+  const { user, password } = makeUser({ role: 'ADMIN', modules: [], ...overrides });
+  return { user, token: await login(user.email, password) };
+}
+
+module.exports = {
+  dataDir, start, stop, resetDb, request, makeUser, login, auditActions, auditRows,
+  registerPayload, pendingUser, adminSession
+};
