@@ -2,13 +2,17 @@
  * Voluntarios (módulo VOLUNTARIOS): personas que apoyan en los eventos. No tienen cuenta (ADR-0004).
  * Duplicado: mismo correo, o mismo nombre completo (sin acentos ni mayúsculas) y teléfono
  * → 409 DUPLICATE_VOLUNTEER con existing_id.
+ * Baja de un padrino con cartas ASIGNADO o RECIBIDO en eventos no cerrados → 409 VOLUNTEER_HAS_ACTIVE_LETTERS (F4).
  */
 const { getDb, nowIso, toIso } = require('../lib/db');
 const { SHIRT_SIZES, VOLUNTEER_AREAS, VOLUNTEER_AREA_LABELS } = require('../lib/catalogs');
 const { toCsv } = require('../lib/csv');
 const { paginate } = require('../lib/pagination');
 const { normalizeKey, ageOn } = require('../lib/text');
+const { AppError } = require('../lib/errors');
 const R = require('./records');
+const events = require('./events');
+const letters = require('./letters');
 const users = require('./users');
 
 const TABLE = 'volunteers';
@@ -55,7 +59,8 @@ function toVolunteerOut(row, db = getDb()) {
     privacy_consent_at: toIso(row.privacy_consent_at),
     created_by: row.created_by_id ? users.toUserRef(users.getUser(row.created_by_id, db)) : null,
     updated_at: toIso(row.updated_at),
-    events: [] // TODO(F4): participación en eventos y cartas apadrinadas
+    events: events.participationsOf(row.id, db),
+    sponsored_letters: letters.lettersOfSponsor(row.id, db)
   };
 }
 
@@ -99,6 +104,13 @@ function updateVolunteer(actor, id, data, ip, db = getDb()) {
       nameKey: row.name_key,
       phone: row.phone ?? existing.phone
     }, existing.id, db);
+    if (row.is_active === false && existing.is_active) {
+      const active = letters.activeLettersOfSponsor(existing.id, db);
+      if (active) {
+        throw new AppError(409, 'VOLUNTEER_HAS_ACTIVE_LETTERS',
+          `Es padrino de ${active === 1 ? 'una carta' : `${active} cartas`} en curso: libéralas o reasígnalas antes de darle de baja.`);
+      }
+    }
     R.updateRecord({ table: TABLE, entity: TABLE, existing, patch: row, actor, ip }, db);
   })();
   return getVolunteer(existing.id, db);

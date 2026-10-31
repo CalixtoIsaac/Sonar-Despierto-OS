@@ -18,7 +18,7 @@ const Bitacora = (() => {
 
   function groupBadge(action) {
     const g = Audit.GROUPS.find((x) => x.key === Audit.AUDIT_ACTION_GROUP[action]);
-    const tone = { sesion: 'badge-info', cuentas: 'badge-sun', permisos: 'badge-warning', personas: 'badge-success', exportaciones: 'badge-danger' }[g?.key] || '';
+    const tone = { sesion: 'badge-info', cuentas: 'badge-sun', permisos: 'badge-warning', personas: 'badge-success', eventos: 'badge-sun', exportaciones: 'badge-danger' }[g?.key] || '';
     return `<span class="badge badge-plain ${tone}">${g ? UI.icon(g.icon) : ''}${esc(Audit.auditActionLabel(action))}</span>`;
   }
 

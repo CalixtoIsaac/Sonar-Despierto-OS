@@ -13,6 +13,23 @@ const VoluntarioDetalle = (() => {
         actionHtml: `<a class="btn btn-outline" href="#voluntarios">${UI.icon('arrowLeft')}Volver a Voluntarios</a>` })}</section>`;
   }
 
+  /** Eventos en los que participa y cartas que apadrina (F4). */
+  function eventsPanel(v, ctx) {
+    const canEvents = Access.canSee(ctx.user, Access.viewByKey('evento'));
+    const canLetters = Access.canSee(ctx.user, Access.viewByKey('carta'));
+    const events = (v.events || []).map((p) => `<li>
+        ${canEvents ? `<a class="strong-link" href="#evento/${p.event.id}">${esc(p.event.name)}</a>` : `<strong>${esc(p.event.name)}</strong>`}
+        <span class="badge badge-plain">${esc(Catalogos.PARTICIPATION_STATUS_LABEL[p.status])}</span>
+        <span class="muted">${esc(Catalogos.VOLUNTEER_AREA_LABEL[p.area])}</span></li>`).join('');
+    const letters = (v.sponsored_letters || []).map((l) => `<li>
+        ${canLetters ? `<a class="strong-link letter-code" href="#carta/${l.id}">${esc(l.code)}</a>` : `<span class="letter-code">${esc(l.code)}</span>`}
+        ${CartasUI.statusChip(l.status)}<span class="muted">${esc(l.event.name)}</span></li>`).join('');
+    return `<section class="card panel"><h3 class="panel-title">Eventos y cartas</h3>
+      <p class="field-label">Eventos</p>${events ? `<ul class="mini-list">${events}</ul>` : '<p class="muted">Aún no participa en eventos.</p>'}
+      <p class="field-label" style="margin-top:14px">Cartas que apadrina</p>${letters ? `<ul class="mini-list">${letters}</ul>` : '<p class="muted">No apadrina cartas.</p>'}
+    </section>`;
+  }
+
   async function toggle(v, reload) {
     if (v.is_active) {
       const ok = await UI.confirm({ title: `¿Dar de baja a ${v.full_name}?`,
@@ -71,8 +88,8 @@ const VoluntarioDetalle = (() => {
               <dt>Talla de playera</dt><dd><span class="badge badge-plain">${esc(v.shirt_size)}</span></dd>
               <dt>Observaciones</dt><dd>${val(v.notes)}</dd>
             </dl>
-            <p class="hint" style="margin-top:14px">${UI.icon('info')} Los eventos y las cartas que apadrine aparecerán aquí en la Fase 4.</p>
           </section>
+          ${eventsPanel(v, ctx)}
           <section class="card panel"><h3 class="panel-title">Registro</h3>
             <dl class="data-list">
               <dt>Aviso de privacidad</dt><dd>Aceptado el ${esc(Fechas.formatDateTime(v.privacy_consent_at))}</dd>

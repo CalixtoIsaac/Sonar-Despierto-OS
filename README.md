@@ -107,4 +107,7 @@ docs/       requerimientos, modelo de datos, API, pantallas, ADR y fases
 - **Fase 3 — Personas:** ✅ (2026-10-29). Voluntarios, escuelas, tutores y niñas y niños con detección de
   duplicados (`409`), consentimiento del tutor legal, exportación CSV registrada en la bitácora y datos de
   menores solo con el módulo Beneficiarios ([contratos](docs/fases/Fase_3_Contratos.md), ADR-0010).
-- **Siguiente:** Fase 4 — Eventos y cartas de Navidad. Fases 5–8: ver la [hoja de ruta](docs/Roadmap_Fases.md).
+- **Fase 4 — Eventos y cartas de Navidad:** ✅ (2026-10-30). Eventos con voluntarios y tallas, cartas con código
+  `NAV26-000123`, foto privada, padrino (voluntario), máquina de estados con historial, búsqueda por código en campo y
+  concurrencia segura (la segunda asignación simultánea recibe `409`) ([contratos](docs/fases/Fase_4_Contratos.md), ADR-0011).
+- **Siguiente:** Fase 5 — Calendario (y en paralelo la 6, Inventario). Fases 5–8: ver la [hoja de ruta](docs/Roadmap_Fases.md).

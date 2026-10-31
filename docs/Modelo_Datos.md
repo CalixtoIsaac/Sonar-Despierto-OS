@@ -4,15 +4,16 @@
 
 > ⚠️ **Actualización 2026-10-17:** en el MVP local el motor es **SQLite** con reglas de portabilidad (ADR-0002); el DDL MySQL de §8 queda como referencia para la nube. Roles `ADMIN`/`OPERADOR` con la tabla `user_module_permissions` y `users.token_version` (ADR-0004, ADR-0007). `volunteer_profiles` y `tutor_profiles` pasarán a ser entidades independientes sin cuenta, y las FK a `users` de padrinos y tutores cambiarán (tabla de cambios en ADR-0004); esta sección se actualizará al inicio de las Fases 3 y 4. Donde haya contradicción, mandan los ADR de [`adr/`](adr/README.md).
 
-> ✅ **Esquema vigente (Fases 1–3, 2026-10-29):** la sección **§0** describe las tablas que existen hoy en `lib/migrations.js` (migraciones 1 a 3). Las secciones §2–§8 conservan el diseño original como referencia para las fases siguientes y para la nube; donde contradigan a §0, manda §0. En particular, `volunteer_profiles` y `tutor_profiles` (§4.2–§4.3) **no existen**: se sustituyeron por `volunteers` y `tutors` sin cuenta (ADR-0004), y `children.tutor_user_id` es ahora `children.tutor_id → tutors` (opcional, ADR-0010).
+> ✅ **Esquema vigente (Fases 1–4, 2026-10-30):** la sección **§0** describe las tablas que existen hoy en `lib/migrations.js` (migraciones 1 a 4). En la F4 `letters.sponsor_user_id` pasó a ser `letters.sponsor_volunteer_id → volunteers` y `event_volunteers.user_id` pasó a `volunteer_id` (ADR-0004, ADR-0011). Las secciones §2–§8 conservan el diseño original como referencia para las fases siguientes y para la nube; donde contradigan a §0, manda §0. En particular, `volunteer_profiles` y `tutor_profiles` (§4.2–§4.3) **no existen**: se sustituyeron por `volunteers` y `tutors` sin cuenta (ADR-0004), y `children.tutor_user_id` es ahora `children.tutor_id → tutors` (opcional, ADR-0010).
 
-## 0. Esquema vigente (SQLite, migraciones 1–3)
+## 0. Esquema vigente (SQLite, migraciones 1–4)
 
 | Migración | Tablas / cambios |
 |---|---|
 | 1 (F1) | `users`, `user_module_permissions`, `audit_logs` |
 | 2 (F2) | `users` + `account_status`, `requested_modules`, `registration_note`, `confidentiality_accepted_at`, `reviewed_by_id`, `reviewed_at`, `review_note` |
 | 3 (F3) | `schools`, `tutors`, `volunteers`, `children` |
+| 4 (F4) | `events`, `event_volunteers`, `letters`, `letter_status_history` (+ disparador de solo inserción) |
 
 ### 0.1 `users` — cuentas del personal (F1 + F2)
 
@@ -51,6 +52,17 @@ Invariante: `account_status ≠ 'APROBADA' ⇒ is_active = 0`. Siempre queda al 
 `user_module_permissions (id, user_id → users ON DELETE CASCADE, module CHECK IN (7 módulos), created_at, UNIQUE(user_id, module))`. El ADMIN no tiene filas: tiene todos.
 
 `audit_logs (id, user_id → users ON DELETE SET NULL [actor], action, entity, entity_id, detail JSON, ip_address, created_at)`. Catálogo de acciones en `lib/audit-actions.js` (21 en la F3). `detail` nunca contiene contraseñas, tokens ni datos de niñas y niños.
+
+### 0.3 Eventos y cartas (F4, ADR-0011)
+
+| Tabla | Columnas | Restricciones |
+|---|---|---|
+| `events` | `name`, `name_key`, `event_type CHECK IN (NAVIDAD, DIA_DEL_NINO, OTRO)`, `code_prefix` (3–10 `[A-Z0-9]`), `event_date`, `location`, `description`, `status CHECK IN (BORRADOR, ABIERTO, EN_CURSO, CERRADO)`, `max_letters_per_sponsor` (1–20, default 3), `next_letter_number` | `UNIQUE(name_key)`, `UNIQUE(code_prefix)`, índice `(status, event_date)` |
+| `event_volunteers` | `event_id → events CASCADE`, `volunteer_id → volunteers RESTRICT`, `area` (8 áreas), `status CHECK IN (POSTULADO, CONFIRMADO, RECHAZADO, CANCELADO)`, `notes` | `UNIQUE(event_id, volunteer_id)` |
+| `letters` | `code`, `number`, `event_id → events RESTRICT`, `child_id → children RESTRICT`, `main_wish`, `secondary_wish`, `letter_text`, `gift_notes`, `photo_path`, `photo_uploaded_at`, `status CHECK IN (PENDIENTE, ASIGNADO, RECIBIDO, ENTREGADO)`, `sponsor_volunteer_id → volunteers RESTRICT`, `assigned_at`, `received_at`, `delivered_at`, `version` (bloqueo optimista) | `UNIQUE(code)`, `UNIQUE(child_id, event_id)`, `UNIQUE(event_id, number)`, `CHECK` padrino ⇔ estatus ≠ PENDIENTE |
+| `letter_status_history` | `letter_id → letters CASCADE`, `from_status`, `to_status`, `changed_by_id → users SET NULL`, `sponsor_volunteer_id` (copia), `comment`, `created_at` | disparador que rechaza `UPDATE` (solo inserción) |
+
+Máquina de estados, concurrencia y reglas: [`fases/Fase_4_Contratos.md`](fases/Fase_4_Contratos.md) §3. La transición `RECIBIDO → ASIGNADO` (corrección) es solo de ADMIN y con comentario.
 
 ### 0.2 Personas (F3, ADR-0004 y ADR-0010)
 

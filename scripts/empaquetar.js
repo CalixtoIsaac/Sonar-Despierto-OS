@@ -74,6 +74,7 @@ async function smokeTest() {
     if ((await json('/api/_test/cartas')).status !== 404) throw new Error('las rutas de prueba no deben existir en producción');
     await smokeRegistration(json, { Authorization: `Bearer ${changed.body.token}` });
     await smokePeople(json, { Authorization: `Bearer ${changed.body.token}` });
+    await smokeLetters(json, { Authorization: `Bearer ${changed.body.token}` });
     console.log('  PRUEBA DE HUMO OK');
   } finally {
     child.kill();
@@ -138,6 +139,31 @@ async function smokePeople(json, admin) {
   const opAuth = { Authorization: `Bearer ${changed.body.token}` };
   expect((await json('/api/children', { headers: opAuth })).status === 403, 'niños sin BENEFICIARIOS → 403');
   expect((await json('/api/volunteers', { headers: opAuth })).status === 200, 'voluntarios con VOLUNTARIOS → 200');
+}
+
+/** Fase 4: evento, carta con código, asignación simultánea (una 409) e historial completo. */
+async function smokeLetters(json, admin) {
+  const expect = (cond, msg) => { if (!cond) throw new Error(`cartas: ${msg}`); };
+  const post = (url, body) => json(url, { method: 'POST', headers: admin, body: JSON.stringify(body) });
+  const ev = await post('/api/events', { name: 'Navidad de Humo', event_type: 'NAVIDAD', code_prefix: 'HUMO', event_date: '2026-12-20' });
+  expect(ev.status === 201, `evento ${ev.status}`);
+  expect((await post(`/api/events/${ev.body.event.id}/status`, { to_status: 'ABIERTO' })).status === 200, 'abrir evento');
+  const kids = await json('/api/children?search=humo', { headers: admin });
+  const letter = await post('/api/letters', { event_id: ev.body.event.id, child_id: kids.body.items[0].id, main_wish: 'Pelota' });
+  expect(letter.status === 201 && letter.body.letter.code === 'HUMO-000001', 'código de carta');
+  const vols = [];
+  for (const n of ['Uno', 'Dos']) {
+    const v = await post('/api/volunteers', { first_name: 'Padrino', last_name: n, phone: n === 'Uno' ? '2291110001' : '2291110002',
+      emergency_contact_name: 'X', emergency_contact_phone: '2291110003', shirt_size: 'M', area_of_interest: 'PADRINO', accepts_privacy: true });
+    vols.push(v.body.volunteer.id);
+  }
+  const id = letter.body.letter.id;
+  const both = await Promise.all(vols.map((v) => post(`/api/letters/${id}/assign`, { volunteer_id: v, version: 1 })));
+  expect(both.map((r) => r.status).sort().join() === '200,409', `asignación simultánea → ${both.map((r) => r.status)}`);
+  const hist = await json(`/api/letters/${id}/history`, { headers: admin });
+  expect(hist.body.items.map((x) => x.to_status).join() === 'PENDIENTE,ASIGNADO', 'historial');
+  const byCode = await json('/api/letters/by-code/humo-1', { headers: admin });
+  expect(byCode.status === 200 && byCode.body.letter.id === id, 'búsqueda por código');
 }
 
 async function main() {

@@ -259,3 +259,138 @@ code { font-family: ui-monospace, 'Cascadia Mono', Consolas, monospace; font-siz
 .table-compact td.date-cell { min-width: 96px; }
 .table-compact td.detail-cell { min-width: 170px; }
 .table-compact .badge { white-space: normal; height: auto; padding-top: 3px; padding-bottom: 3px; }
+
+/* ======================================================================
+ * Vistas de la Fase 4 (eventos y cartas)
+ * ====================================================================== */
+/* Chips de estatus de carta (Pantallas_UI §1.1): color + ícono + texto */
+.letter-chip { gap: 5px; color: var(--foreground); }
+.letter-chip-pendiente { background: var(--muted); color: var(--muted-foreground); border: 1px solid var(--border); }
+.letter-chip-asignado  { background: color-mix(in oklab, var(--secondary) 22%, var(--card)); color: var(--foreground); }
+.letter-chip-recibido  { background: var(--sun-bg); color: var(--sun-text); }
+.letter-chip-entregado { background: var(--success-bg); color: var(--success-text); }
+.letter-code { font-family: ui-monospace, 'Cascadia Mono', Consolas, monospace; font-weight: 700; letter-spacing: .02em; white-space: nowrap; }
+.letter-title { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.letter-title .letter-code { font-size: 28px; }
+.photo-flag { display: inline-flex; vertical-align: middle; color: var(--muted-foreground); }
+.photo-flag .icon { width: 16px; height: 16px; }
+.letter-text { white-space: pre-wrap; margin: 0; }
+
+/* Encabezado de panel con acción */
+.panel-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
+.panel-head .panel-title { margin-bottom: 0; }
+
+/* Tarjetas de contador */
+.stat-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); gap: 10px; }
+.stat-card {
+  display: flex; flex-direction: column; gap: 4px; padding: 12px 14px; border: 1px solid var(--border);
+  border-radius: var(--radius-sm); background: var(--card); color: var(--foreground); text-decoration: none;
+}
+a.stat-card:hover { border-color: var(--primary); }
+a.stat-card:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+.stat-value { font-family: var(--font-display); font-weight: 900; font-size: 26px; line-height: 1.1; }
+.stat-label { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; color: var(--muted-foreground); }
+.stat-label .icon { width: 15px; height: 15px; }
+.stat-asignado { border-left: 4px solid var(--secondary); }
+.stat-recibido { border-left: 4px solid var(--sun); }
+.stat-entregado { border-left: 4px solid var(--success-text); }
+.sizes-inline { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; margin-top: 16px; }
+
+/* Selector de evento en Cartas */
+.event-bar { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 10px 20px; margin-bottom: 16px; padding: 16px 20px; }
+.event-select { min-width: min(100%, 320px); }
+.event-bar-info { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding-bottom: 10px; }
+.event-bar .hint { flex-basis: 100%; display: flex; align-items: center; gap: 6px; }
+
+/* Listas de selección (padrinos, voluntarios, niñas y niños) */
+.sponsor-list, .child-list, .pick-list { max-height: 320px; overflow-y: auto; padding: 2px; }
+.pick-list { display: flex; flex-direction: column; gap: 8px; padding: 10px; border: 1px solid var(--border); border-radius: var(--radius-sm); }
+.pick-item { padding: 6px 0; }
+.radio-card.disabled { cursor: not-allowed; opacity: .75; background: var(--muted); }
+.radio-card .field-error { display: inline-flex; gap: 4px; align-items: center; font-size: 14px; }
+.radio-card .field-error a { color: inherit; }
+.action-code { margin-bottom: 4px; }
+.select-sm .select { min-height: 38px; font-size: 15px; }
+.mini-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.mini-list li { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+.mini-list li:last-child { border-bottom: 0; padding-bottom: 0; }
+
+/* Fotos de cartas */
+.photo-picker { display: flex; flex-direction: column; gap: 12px; }
+.photo-picker-btn { align-self: flex-start; }
+.photo-preview { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; }
+.photo-preview img, .photo-frame img { display: block; max-width: 100%; max-height: 360px; border-radius: var(--radius-sm); border: 1px solid var(--border); }
+.photo-frame { padding: 0; border: 0; background: none; cursor: zoom-in; display: block; }
+.photo-frame:focus-visible { outline: none; box-shadow: var(--focus-ring); border-radius: var(--radius-sm); }
+.photo-empty {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; min-height: 160px;
+  border: 2px dashed var(--border); border-radius: var(--radius-sm); color: var(--muted-foreground);
+}
+.photo-empty .icon { width: 30px; height: 30px; }
+.photo-actions { margin-top: 10px; }
+.photo-zoom { display: block; width: 100%; height: auto; cursor: zoom-out; border-radius: var(--radius-sm); }
+label.btn.is-busy { opacity: .7; pointer-events: none; }
+
+/* Avance de la carta */
+.steps { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.step { display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center; position: relative; color: var(--muted-foreground); }
+.step::before { content: ""; position: absolute; top: 17px; left: calc(-50% + 22px); right: calc(50% + 22px); height: 3px; background: var(--border); }
+.step:first-child::before { display: none; }
+.step.done::before { background: var(--success-text); }
+.step-dot {
+  display: grid; place-items: center; width: 36px; height: 36px; border-radius: 50%; position: relative; z-index: 1;
+  border: 2px solid var(--border); background: var(--card); font-weight: 800;
+}
+.step-dot .icon { width: 18px; height: 18px; }
+.step.done .step-dot { background: var(--success-bg); border-color: var(--success-text); color: var(--success-text); }
+.step.current .step-dot { background: var(--primary); border-color: var(--primary); color: var(--primary-foreground); }
+.step-label { display: flex; flex-direction: column; font-size: 14px; font-weight: 700; color: var(--foreground); }
+.step-label .muted { font-weight: 500; font-size: 13px; }
+.action-bar { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--border); }
+@media (max-width: 560px) {
+  .steps { grid-template-columns: repeat(2, minmax(0, 1fr)); row-gap: 16px; }
+  .step:nth-child(3)::before { display: none; }
+  .action-bar .btn { width: 100%; }
+}
+
+/* Historial */
+.timeline { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.timeline-item { display: grid; grid-template-columns: 18px minmax(0, 1fr); gap: 12px; padding-bottom: 16px; position: relative; }
+.timeline-item::before { content: ""; position: absolute; left: 8px; top: 18px; bottom: 0; width: 2px; background: var(--border); }
+.timeline-item:last-child::before { display: none; }
+.timeline-item p { margin: 0 0 4px; display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.timeline-item .quote { display: block; }
+.timeline-dot { width: 18px; height: 18px; border-radius: 50%; margin-top: 3px; border: 3px solid var(--card); box-shadow: 0 0 0 2px var(--border); background: var(--muted); }
+.letter-dot-asignado { background: var(--secondary); }
+.letter-dot-recibido { background: var(--sun); }
+.letter-dot-entregado { background: var(--success-text); }
+
+/* Código grande (alta de carta y búsqueda en campo) */
+.big-code {
+  font-family: ui-monospace, 'Cascadia Mono', Consolas, monospace; font-weight: 800; font-size: clamp(30px, 8vw, 48px);
+  letter-spacing: .04em; color: var(--foreground); overflow-wrap: anywhere;
+}
+.code-success { display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center; margin: 12px auto 0; }
+.code-success .big-code { padding: 12px 20px; border: 2px dashed var(--secondary); border-radius: var(--radius); background: var(--sun-bg); }
+.form-actions.centered { justify-content: center; border-top: 0; }
+
+.scan-form { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
+.scan-label { font-weight: 700; font-size: 17px; }
+.scan-row { display: flex; gap: 10px; flex-wrap: wrap; }
+.scan-row .input-xl { flex: 1 1 260px; }
+.input-xl { min-height: 60px; font-size: 26px; font-family: ui-monospace, 'Cascadia Mono', Consolas, monospace; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; }
+.input-xl::placeholder { text-transform: none; font-weight: 500; }
+.scan-result { display: flex; flex-direction: column; gap: 10px; }
+.scan-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; }
+.scan-head .big-code { font-size: clamp(28px, 7vw, 40px); }
+.scan-child { font-family: var(--font-display); font-weight: 800; font-size: 22px; }
+.scan-actions { display: flex; flex-direction: column; gap: 10px; margin-top: 6px; }
+.scan-actions .btn-lg { min-height: 60px; font-size: 19px; }
+.scan-done { margin-bottom: 16px; font-size: 17px; }
+.recent-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.recent-list li { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+@media (max-width: 560px) { .scan-row .btn { width: 100%; } }
+.progress-panel { margin-bottom: 20px; }
+.section-gap { margin-top: 20px; }
+.select-sm .select { min-width: 170px; }
+.detail-grid > div > [data-summary] .panel + .panel, [data-summary] > .panel + .panel { margin-top: 20px; }

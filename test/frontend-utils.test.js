@@ -131,3 +131,59 @@ test('Audit: textos de la F3 (personas y exportaciones) y enlaces a las fichas',
   assert.equal(Audit.entityHref('schools', 2), '#escuelas?ver=2');
   assert.equal(Audit.entityHref('users', 1), '#usuario/1');
 });
+
+test('F4: catálogos de eventos y cartas = lib/catalogs.js; vistas protegidas por EVENTOS y CARTAS', () => {
+  const Catalogos = require('../public/js/catalogos');
+  const cat = require('../lib/catalogs');
+  for (const [front, back] of [
+    ['EVENT_TYPES', 'EVENT_TYPES'], ['EVENT_STATUSES', 'EVENT_STATUSES'], ['PARTICIPATION_STATUSES', 'PARTICIPATION_STATUSES'],
+    ['LETTER_STATUSES', 'LETTER_STATUSES'], ['LETTER_EVENT_TYPES', 'LETTER_EVENT_TYPES']
+  ]) assert.deepEqual(Catalogos[front], [...cat[back]], front);
+  for (const [front, back] of [
+    ['EVENT_TYPE_LABEL', 'EVENT_TYPE_LABELS'], ['EVENT_STATUS_LABEL', 'EVENT_STATUS_LABELS'],
+    ['PARTICIPATION_STATUS_LABEL', 'PARTICIPATION_STATUS_LABELS'], ['LETTER_STATUS_LABEL', 'LETTER_STATUS_LABELS']
+  ]) assert.deepEqual(Catalogos[front], { ...cat[back] }, front);
+  assert.equal(Catalogos.DEFAULT_LETTERS_PER_SPONSOR, cat.DEFAULT_LETTERS_PER_SPONSOR);
+  assert.equal(Catalogos.MAX_LETTERS_PER_SPONSOR, cat.MAX_LETTERS_PER_SPONSOR);
+  assert.deepEqual({ ...Audit.LETTER_STATUS_LABEL }, { ...cat.LETTER_STATUS_LABELS });
+  assert.deepEqual({ ...Audit.EVENT_STATUS_LABEL }, { ...cat.EVENT_STATUS_LABELS });
+
+  for (const key of ['eventos', 'evento']) assert.equal(Access.viewByKey(key).module, 'EVENTOS', key);
+  for (const key of ['cartas', 'carta', 'carta-form', 'buscar']) assert.equal(Access.viewByKey(key).module, 'CARTAS', key);
+  for (const key of ['eventos', 'evento', 'cartas', 'carta', 'carta-form', 'buscar']) assert.ok(Access.viewByKey(key).ready, key);
+  assert.deepEqual(Access.visibleMenu({ role: 'OPERADOR', modules: ['CARTAS'] }).map((v) => v.key), ['inicio', 'cartas', 'buscar', 'perfil']);
+});
+
+test('F4: CartasUI — chips, siguiente estatus del evento, vista previa del código y evento por defecto', () => {
+  global.Catalogos = require('../public/js/catalogos');
+  const CartasUI = require('../public/js/cartas-ui');
+  assert.deepEqual(CartasUI.statusMeta('ASIGNADO'), { icon: 'heart', cls: 'letter-chip-asignado', label: 'Con padrino' });
+  assert.match(CartasUI.statusChip('ENTREGADO'), /letter-chip-entregado.*Entregado/);
+  assert.equal(CartasUI.nextEventStatus('BORRADOR').to, 'ABIERTO');
+  assert.equal(CartasUI.nextEventStatus('ABIERTO').to, 'EN_CURSO');
+  assert.equal(CartasUI.nextEventStatus('EN_CURSO').to, 'CERRADO');
+  assert.equal(CartasUI.nextEventStatus('CERRADO'), null);
+  assert.equal(CartasUI.previewCode('nav26'), 'NAV26-000001');
+  const events = [
+    { id: 1, event_type: 'DIA_DEL_NINO', status: 'ABIERTO' },
+    { id: 2, event_type: 'NAVIDAD', status: 'CERRADO' },
+    { id: 3, event_type: 'NAVIDAD', status: 'EN_CURSO' }
+  ];
+  assert.equal(CartasUI.defaultEvent(events).id, 3, 'Navidad abierta o en curso primero');
+  assert.equal(CartasUI.defaultEvent(events.slice(0, 2)).id, 2, 'si no, la Navidad más reciente');
+  assert.equal(CartasUI.defaultEvent([]), null);
+  assert.equal(CartasUI.childLabel({ display_name: 'Sofía C.' }), 'Sofía C.');
+  assert.deepEqual(Object.keys(CartasUI.ACTIONS), ['assign', 'release', 'receive', 'deliver', 'revert']);
+});
+
+test('F4: Audit — textos de eventos y cartas y enlaces a sus fichas', () => {
+  const d = (action, detail, entity = 'letters') => Audit.describeAuditDetail({ action, detail, entity });
+  assert.equal(d('LETTER_STATUS_CHANGED', { from: 'PENDIENTE', to: 'ASIGNADO', sponsor_volunteer_id: 3 }), 'Pendiente → Con padrino');
+  assert.equal(d('EVENT_STATUS_CHANGED', { from: 'ABIERTO', to: 'CERRADO' }, 'events'), 'Abierto → Cerrado');
+  assert.equal(d('EVENT_VOLUNTEERS_ADDED', { volunteer_ids: [1, 2], count: 2 }, 'events'), '2 voluntarios');
+  assert.equal(d('EVENT_VOLUNTEER_UPDATED', { volunteer_id: 9, changed: ['status'], status: 'CANCELADO' }, 'events'), 'Voluntario #9 · estatus · Cancelado');
+  assert.equal(d('RECORD_UPDATED', { changed: ['main_wish', 'gift_notes'] }), 'Campos: deseo principal, notas del regalo');
+  assert.equal(d('DATA_EXPORTED', { format: 'csv', count: 3, filters: { event_id: 1 } }), '3 cartas en CSV (con filtros)');
+  assert.equal(Audit.entityHref('letters', 5), '#carta/5');
+  assert.equal(Audit.entityHref('events', 2), '#evento/2');
+});
