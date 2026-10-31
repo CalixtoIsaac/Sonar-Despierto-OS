@@ -18,6 +18,7 @@ Un ADR documenta **una** decisión técnica importante: el contexto, lo que se d
 | [0008](0008-auto-registro-con-aprobacion.md) | Auto-registro del personal con aprobación del administrador | Aceptado | 2026-10-17 |
 | [0009](0009-stack-node-express-sqlite-como-sema.md) | Mismo stack que My Best DataBase y SEMA: Node.js + Express + SQLite + HTML/CSS/JS | Aceptado | 2026-10-23 |
 | [0010](0010-personas-duplicados-auditoria-y-consentimiento.md) | Personas: detección de duplicados, auditoría genérica y consentimiento | Aceptado | 2026-10-29 |
+| [0011](0011-eventos-cartas-concurrencia-y-fotos.md) | Eventos y cartas: padrino voluntario, bloqueo optimista, datos restringidos y fotos privadas | Aceptado | 2026-10-30 |
 
 Hoja de ruta aprobada: [`../Roadmap_Fases.md`](../Roadmap_Fases.md).
 

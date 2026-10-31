@@ -10,7 +10,9 @@ const Audit = (() => {
     'ACCOUNT_REQUESTED', 'ACCOUNT_APPROVED', 'ACCOUNT_REJECTED',
     'USER_CREATED', 'USER_UPDATED', 'ROLE_CHANGED', 'PERMISSIONS_CHANGED',
     'USER_ACTIVATED', 'USER_DEACTIVATED', 'USER_DELETED', 'PROFILE_UPDATED',
-    'RECORD_CREATED', 'RECORD_UPDATED', 'RECORD_DEACTIVATED', 'RECORD_ACTIVATED', 'DATA_EXPORTED'
+    'RECORD_CREATED', 'RECORD_UPDATED', 'RECORD_DEACTIVATED', 'RECORD_ACTIVATED', 'DATA_EXPORTED',
+    'EVENT_STATUS_CHANGED', 'EVENT_VOLUNTEERS_ADDED', 'EVENT_VOLUNTEER_UPDATED',
+    'LETTER_STATUS_CHANGED', 'LETTER_PHOTO_UPDATED', 'LETTER_PHOTO_REMOVED'
   ];
 
   const AUDIT_ACTION_LABEL = {
@@ -34,14 +36,21 @@ const Audit = (() => {
     RECORD_UPDATED: 'Registro modificado',
     RECORD_DEACTIVATED: 'Registro dado de baja',
     RECORD_ACTIVATED: 'Registro reactivado',
-    DATA_EXPORTED: 'Exportación de datos'
+    DATA_EXPORTED: 'Exportación de datos',
+    EVENT_STATUS_CHANGED: 'Cambio de estatus del evento',
+    EVENT_VOLUNTEERS_ADDED: 'Voluntarios agregados al evento',
+    EVENT_VOLUNTEER_UPDATED: 'Participación en evento modificada',
+    LETTER_STATUS_CHANGED: 'Cambio de estatus de carta',
+    LETTER_PHOTO_UPDATED: 'Foto de carta actualizada',
+    LETTER_PHOTO_REMOVED: 'Foto de carta eliminada'
   };
 
   const GROUPS = [
     { key: 'sesion', label: 'Sesión', icon: 'key' },
     { key: 'cuentas', label: 'Cuentas', icon: 'userCog' },
     { key: 'permisos', label: 'Permisos', icon: 'shield' },
-    { key: 'personas', label: 'Personas', icon: 'users' },
+    { key: 'personas', label: 'Registros', icon: 'users' },
+    { key: 'eventos', label: 'Eventos y cartas', icon: 'mail' },
     { key: 'exportaciones', label: 'Exportaciones', icon: 'download' }
   ];
 
@@ -51,13 +60,18 @@ const Audit = (() => {
     USER_UPDATED: 'cuentas', USER_DELETED: 'cuentas', PROFILE_UPDATED: 'cuentas',
     ROLE_CHANGED: 'permisos', PERMISSIONS_CHANGED: 'permisos', USER_ACTIVATED: 'permisos', USER_DEACTIVATED: 'permisos',
     RECORD_CREATED: 'personas', RECORD_UPDATED: 'personas', RECORD_DEACTIVATED: 'personas', RECORD_ACTIVATED: 'personas',
-    DATA_EXPORTED: 'exportaciones'
+    DATA_EXPORTED: 'exportaciones',
+    EVENT_STATUS_CHANGED: 'eventos', EVENT_VOLUNTEERS_ADDED: 'eventos', EVENT_VOLUNTEER_UPDATED: 'eventos',
+    LETTER_STATUS_CHANGED: 'eventos', LETTER_PHOTO_UPDATED: 'eventos', LETTER_PHOTO_REMOVED: 'eventos'
   };
 
-  const ENTITY_LABEL = { users: 'Usuario', volunteers: 'Voluntario', schools: 'Escuela', tutors: 'Tutor', children: 'Niña o niño' };
-  const ENTITY_PLURAL = { volunteers: 'voluntarios', schools: 'escuelas', tutors: 'tutores', children: 'niñas y niños' };
+  const ENTITY_LABEL = { users: 'Usuario', volunteers: 'Voluntario', schools: 'Escuela', tutors: 'Tutor', children: 'Niña o niño',
+    events: 'Evento', letters: 'Carta' };
+  const ENTITY_PLURAL = { volunteers: 'voluntarios', schools: 'escuelas', tutors: 'tutores', children: 'niñas y niños',
+    events: 'eventos', letters: 'cartas' };
   // Vista del detalle de cada entidad (para enlazar "Sobre" en la bitácora)
-  const ENTITY_VIEW = { users: 'usuario', volunteers: 'voluntario', children: 'nino', schools: 'escuelas', tutors: 'tutores' };
+  const ENTITY_VIEW = { users: 'usuario', volunteers: 'voluntario', children: 'nino', schools: 'escuelas', tutors: 'tutores',
+    events: 'evento', letters: 'carta' };
   // Escuelas y tutores no tienen página de detalle: se abre su listado con el registro resaltado
   const entityHref = (entity, id) => {
     if (!ENTITY_VIEW[entity] || !id) return null;
@@ -73,8 +87,16 @@ const Audit = (() => {
     name: 'nombre', cct: 'CCT', zone: 'zona', address: 'dirección', contact_name: 'contacto', contact_phone: 'teléfono de contacto',
     position: 'cargo', school_id: 'escuela', tutor_id: 'tutor', gender: 'género', grade: 'grado', group_name: 'grupo',
     guardian_name: 'madre, padre o tutor legal', guardian_relationship: 'parentesco', guardian_phone: 'teléfono del tutor legal',
-    guardian_consent: 'consentimiento'
+    guardian_consent: 'consentimiento',
+    event_type: 'tipo', code_prefix: 'prefijo', event_date: 'fecha', location: 'lugar', description: 'descripción',
+    max_letters_per_sponsor: 'límite por padrino', main_wish: 'deseo principal', secondary_wish: 'deseo secundario',
+    letter_text: 'transcripción', gift_notes: 'notas del regalo', area: 'área', status: 'estatus'
   };
+
+  // Estatus de eventos y cartas (espejo de lib/catalogs.js; los usa el texto de la bitácora)
+  const EVENT_STATUS_LABEL = { BORRADOR: 'Borrador', ABIERTO: 'Abierto', EN_CURSO: 'En curso', CERRADO: 'Cerrado' };
+  const LETTER_STATUS_LABEL = { PENDIENTE: 'Pendiente', ASIGNADO: 'Con padrino', RECIBIDO: 'Regalo recibido', ENTREGADO: 'Entregado' };
+  const PARTICIPATION_STATUS_LABEL = { POSTULADO: 'Postulado', CONFIRMADO: 'Confirmado', RECHAZADO: 'Rechazado', CANCELADO: 'Cancelado' };
 
   const auditActionLabel = (action) => AUDIT_ACTION_LABEL[action] || action;
   const moduleNames = (list) => (list || []).map((m) => AccessRef.MODULE_INFO[m]?.label || m).join(', ');
@@ -123,6 +145,16 @@ const Audit = (() => {
         const status = AccessRef.ACCOUNT_STATUS_LABEL[d.account_status];
         return d.email ? `${d.email}${status ? ` (${status.toLowerCase()})` : ''}` : '';
       }
+      case 'EVENT_STATUS_CHANGED':
+        return `${EVENT_STATUS_LABEL[d.from] || d.from} → ${EVENT_STATUS_LABEL[d.to] || d.to}`;
+      case 'LETTER_STATUS_CHANGED':
+        return `${LETTER_STATUS_LABEL[d.from] || d.from} → ${LETTER_STATUS_LABEL[d.to] || d.to}`;
+      case 'EVENT_VOLUNTEERS_ADDED':
+        return `${d.count ?? (d.volunteer_ids || []).length} ${(d.count ?? 0) === 1 ? 'voluntario' : 'voluntarios'}`;
+      case 'EVENT_VOLUNTEER_UPDATED': {
+        const what = (d.changed || []).map((f) => FIELD_LABEL[f] || f).join(', ');
+        return `Voluntario #${d.volunteer_id}${what ? ` · ${what}` : ''}${d.status ? ` · ${PARTICIPATION_STATUS_LABEL[d.status] || d.status}` : ''}`;
+      }
       case 'DATA_EXPORTED': {
         const what = ENTITY_PLURAL[log.entity] || log.entity;
         const filters = Object.keys(d.filters || {}).length ? ' (con filtros)' : '';
@@ -135,6 +167,7 @@ const Audit = (() => {
 
   return {
     AUDIT_ACTIONS, AUDIT_ACTION_LABEL, AUDIT_ACTION_GROUP, GROUPS, ENTITY_LABEL, ENTITY_PLURAL, ENTITY_VIEW, FIELD_LABEL,
+    EVENT_STATUS_LABEL, LETTER_STATUS_LABEL, PARTICIPATION_STATUS_LABEL,
     auditActionLabel, describeAuditDetail, entityHref
   };
 })();

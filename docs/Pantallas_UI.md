@@ -4,7 +4,7 @@
 
 > ⚠️ **Actualización 2026-10-17:** el frontend es una SPA React basada en el diseño de Lovable (ADR-0001); las rutas `.html` se reinterpretan como rutas `/app/...` (ver `fases/Fase_1_Prompts_Task_Document.md` §3.9). En el MVP local solo acceden ADMIN y OPERADOR (ADR-0004): las pantallas de voluntario y tutor con cuenta propia (P02, P06, P07, P19–P21, P24) quedan para la fase de nube y su función la opera el personal. Donde haya contradicción, mandan los ADR de [`adr/`](adr/README.md).
 
-> ✅ **Pantallas vigentes (Fases 1–3, 2026-10-29):** la tabla siguiente lista las pantallas construidas y su ruta real. Las descripciones P01–P24 de §3 son el diseño original; para las pantallas ya construidas mandan esta tabla y los documentos de fase.
+> ✅ **Pantallas vigentes (Fases 1–4, 2026-10-30):** la tabla siguiente lista las pantallas construidas y su ruta real. Las descripciones P01–P24 de §3 son el diseño original; para las pantallas ya construidas mandan esta tabla y los documentos de fase.
 
 | Pantalla | Ruta | Acceso | Notas |
 |---|---|---|---|
@@ -21,7 +21,13 @@
 | Tutores | `/app#tutores` | `BENEFICIARIOS` | Responsables de grupo, con escuela opcional |
 | P12 Niñas y niños | `/app#ninos` | `BENEFICIARIOS` | Filtros (escuela o "Sin escuela", tutor, consentimiento, estado), insignia de consentimiento, exportar CSV |
 | P13 Registro de niña o niño | `/app#nino-form[/<id>]` | `BENEFICIARIOS` | Secciones, edad calculada, "Guardar y registrar otro" (conserva escuela, grado, grupo y tutor), aviso de duplicado con enlace |
-| P14 Ficha de niña o niño | `/app#nino/<id>` | `BENEFICIARIOS` | Ficha, escuela, tutor, tutor legal y consentimiento; cartas en la F4 |
+| P14 Ficha de niña o niño | `/app#nino/<id>` | `BENEFICIARIOS` | Ficha, escuela, tutor, tutor legal y consentimiento; sus cartas y "Registrar carta" (F4) |
+| P22 Eventos | `/app#eventos` | `EVENTOS` | Filtros (estatus, tipo); alta y edición en diálogo con vista previa del código |
+| P23 Detalle de evento | `/app#evento/<id>` | `EVENTOS` | Siguiente estatus (Abrir → Iniciar → Cerrar), contadores, playeras de confirmados, voluntarios (agregar varios, área y estatus por fila) |
+| P15 Cartas | `/app#cartas` | `CARTAS` | Selector de evento, pestañas por estatus con contador, filtros, chips de estatus, CSV |
+| P16 Registro de carta | `/app#carta-form[/<id>]` | `CARTAS` | Niñas y niños elegibles (con motivo si no), deseos, foto con cámara; código en grande al guardar |
+| P17 Detalle de carta | `/app#carta/<id>` | `CARTAS` | Avance, acciones según estatus con diálogo, foto ampliable, padrino, historial en línea de tiempo |
+| P18 Búsqueda por código | `/app#buscar` | `CARTAS` | Campo grande para teclado o lector, un botón con la siguiente acción, lista de lo hecho |
 
 Componentes compartidos: `ui-kit.js` (API, diálogos, `buildQuery`, `download`), `components.js` (selector de módulos, paginación, contraseña temporal, estados, formularios con errores por campo), `listado.js` (pantallas de listado), `fechas.js`, `phone.js`, `audit.js`, `catalogos.js`. Todas las pantallas tienen estados de carga, vacío y error y se probaron a 360 px en tema claro y oscuro.
 

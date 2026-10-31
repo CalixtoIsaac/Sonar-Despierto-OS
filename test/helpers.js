@@ -162,6 +162,43 @@ function childPayload(overrides = {}) {
   };
 }
 
+// ---------- Fase 4: eventos y cartas ----------
+let eventCounter = 0;
+function eventPayload(overrides = {}) {
+  const n = ++eventCounter;
+  return { name: `Navidad ${2026 + n}`, event_type: 'NAVIDAD', code_prefix: `NAV${n}`, event_date: '2026-12-20',
+    location: 'Explanada del puerto', max_letters_per_sponsor: 3, description: 'Entrega de regalos', ...overrides };
+}
+
+/** Crea un evento por la API y lo deja en el estatus pedido (por defecto ABIERTO). Devuelve el evento. */
+async function openEvent(token, overrides = {}, status = 'ABIERTO') {
+  const r = await request('POST', '/api/events', { token, body: eventPayload(overrides) });
+  if (r.status !== 201) throw new Error(`evento ${r.status}: ${r.text}`);
+  if (status === 'BORRADOR') return r.body.event;
+  const s = await request('POST', `/api/events/${r.body.event.id}/status`, { token, body: { to_status: status } });
+  if (s.status !== 200) throw new Error(`estatus ${s.status}: ${s.text}`);
+  return s.body.event;
+}
+
+/** Crea una niña o niño (con consentimiento) por la API. */
+async function makeChild(token, overrides = {}) {
+  const r = await request('POST', '/api/children', { token, body: childPayload(overrides) });
+  if (r.status !== 201) throw new Error(`niño ${r.status}: ${r.text}`);
+  return r.body.child;
+}
+
+async function makeVolunteer(token, overrides = {}) {
+  const r = await request('POST', '/api/volunteers', { token, body: volunteerPayload(overrides) });
+  if (r.status !== 201) throw new Error(`voluntario ${r.status}: ${r.text}`);
+  return r.body.volunteer;
+}
+
+async function makeLetter(token, { eventId, childId, ...overrides }) {
+  const r = await request('POST', '/api/letters', { token, body: { event_id: eventId, child_id: childId, main_wish: 'Bicicleta rodada 16', ...overrides } });
+  if (r.status !== 201) throw new Error(`carta ${r.status}: ${r.text}`);
+  return r.body.letter;
+}
+
 /** Sesión de un OPERADOR con los módulos indicados: { user, token }. */
 async function operatorSession(modules) {
   const { user, password } = makeUser({ modules });
@@ -172,5 +209,6 @@ module.exports = {
   baseUrl: () => baseUrl,
   dataDir, start, stop, resetDb, request, makeUser, login, auditActions, auditRows,
   registerPayload, pendingUser, adminSession, operatorSession,
-  schoolPayload, tutorPayload, volunteerPayload, childPayload
+  schoolPayload, tutorPayload, volunteerPayload, childPayload,
+  eventPayload, openEvent, makeChild, makeVolunteer, makeLetter
 };

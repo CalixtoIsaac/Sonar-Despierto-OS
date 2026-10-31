@@ -4,7 +4,8 @@
  * - Duplicado: mismo nombre completo (sin acentos ni mayúsculas) y misma fecha de nacimiento
  *   → 409 DUPLICATE_CHILD con existing_id (aunque la escuela sea distinta o falte).
  * - Consentimiento del padre, madre o tutor legal: guardian_consent; al marcarlo se guarda la fecha.
- *   Se puede registrar sin él, pero la Fase 4 lo exige para crear cartas.
+ *   Se puede registrar sin él, pero es obligatorio para crear cartas (F4, 400 CONSENT_REQUIRED).
+ * - Baja con cartas sin entregar en eventos no cerrados → 409 CHILD_HAS_ACTIVE_LETTERS (F4).
  * - La bitácora nunca guarda nombres ni datos del menor: solo ids y nombres de campos.
  */
 const { getDb, nowIso, toIso } = require('../lib/db');
@@ -12,7 +13,9 @@ const { GENDER_LABELS } = require('../lib/catalogs');
 const { toCsv } = require('../lib/csv');
 const { paginate } = require('../lib/pagination');
 const { normalizeKey, ageOn } = require('../lib/text');
+const { AppError } = require('../lib/errors');
 const R = require('./records');
+const letters = require('./letters');
 const schools = require('./schools');
 const tutors = require('./tutors');
 const users = require('./users');
@@ -66,7 +69,7 @@ function toChildOut(row, db = getDb()) {
     guardian_phone: row.guardian_phone ?? null,
     guardian_consent_at: toIso(row.guardian_consent_at),
     notes: row.notes ?? null,
-    letters: [], // TODO(F4): cartas de la niña o niño por evento
+    letters: letters.lettersOfChild(row.id, db),
     created_by: row.created_by_id ? users.toUserRef(users.getUser(row.created_by_id, db)) : null,
     created_at: toIso(row.created_at),
     updated_at: toIso(row.updated_at)
@@ -115,6 +118,13 @@ function updateChild(actor, id, data, ip, db = getDb()) {
     if (row.school_id !== undefined) schools.assertAssignable(row.school_id, { currentId: existing.school_id }, db);
     if (row.tutor_id !== undefined) tutors.assertAssignable(row.tutor_id, { currentId: existing.tutor_id }, db);
     checkDuplicate(row.name_key, row.birth_date ?? existing.birth_date, existing.id, db);
+    if (row.is_active === false && existing.is_active) {
+      const pending = letters.pendingLettersOfChild(existing.id, db);
+      if (pending) {
+        throw new AppError(409, 'CHILD_HAS_ACTIVE_LETTERS',
+          `Tiene ${pending === 1 ? 'una carta' : `${pending} cartas`} sin entregar en eventos abiertos: entrégala(s) o cierra el evento antes de darla(o) de baja.`);
+      }
+    }
     R.updateRecord({ table: TABLE, entity: TABLE, existing, patch: row, actor, ip }, db);
   })();
   return getChild(existing.id, db);

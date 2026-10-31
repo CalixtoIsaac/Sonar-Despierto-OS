@@ -13,6 +13,23 @@ const NinoDetalle = (() => {
         actionHtml: `<a class="btn btn-outline" href="#ninos">${UI.icon('arrowLeft')}Volver a Niñas y niños</a>` })}</section>`;
   }
 
+  /** Cartas por evento; "Registrar carta" si tiene consentimiento y la persona tiene el módulo Cartas. */
+  function lettersPanel(c, ctx) {
+    const canLetters = Access.canSee(ctx.user, Access.viewByKey('cartas'));
+    const items = c.letters || [];
+    const list = items.length ? `<ul class="mini-list">${items.map((l) => `<li>
+        ${canLetters ? `<a class="strong-link letter-code" href="#carta/${l.id}">${esc(l.code)}</a>` : `<span class="letter-code">${esc(l.code)}</span>`}
+        ${CartasUI.statusChip(l.status)}<span class="muted">${esc(l.event.name)} · ${esc(l.main_wish)}</span></li>`).join('')}</ul>`
+      : '<p class="muted">Aún no tiene cartas.</p>';
+    const action = canLetters && c.is_active
+      ? (c.guardian_consent
+        ? `<a class="btn btn-outline btn-sm" href="#carta-form?nino=${c.id}">${UI.icon('plus')}Registrar carta</a>`
+        : '<p class="hint">Para registrar su carta primero marca el consentimiento del tutor legal.</p>')
+      : '';
+    return `<section class="card panel"><div class="panel-head"><h3 class="panel-title">Cartas de Navidad</h3>${action.startsWith('<a') ? action : ''}</div>
+      ${list}${action.startsWith('<p') ? action : ''}</section>`;
+  }
+
   async function toggle(c, reload) {
     if (c.is_active) {
       const ok = await UI.confirm({ title: `¿Dar de baja a ${c.full_name}?`,
@@ -72,8 +89,7 @@ const NinoDetalle = (() => {
               <dt>Teléfono</dt><dd>${Listado.phoneLink(c.guardian_phone)}</dd>
               <dt>Consentimiento</dt><dd>${Ninos.consentBadge(c)}${c.guardian_consent_at ? `<br><span class="muted">Registrado el ${esc(Fechas.formatDateTime(c.guardian_consent_at))}</span>` : ''}</dd>
             </dl></section>
-          <section class="card panel"><h3 class="panel-title">Cartas de Navidad</h3>
-            <p class="muted">${UI.icon('mail')} Las cartas por evento aparecerán aquí en la Fase 4.</p></section>
+          ${lettersPanel(c, ctx)}
           <section class="card panel"><h3 class="panel-title">Registro</h3>
             <dl class="data-list">
               <dt>Registrado por</dt><dd>${c.created_by ? esc(c.created_by.full_name) : dash} <span class="muted">el ${esc(Fechas.formatDateTime(c.created_at))}</span></dd>

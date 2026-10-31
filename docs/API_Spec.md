@@ -1,6 +1,6 @@
 # Especificación de API (MVP) — Soñar Despierto
 
-> ✅ **Actualizado en las Fases 2 y 3 (2026-10-29; ADR-0004, ADR-0007, ADR-0008, ADR-0009, ADR-0010):** las secciones §3.1–§3.5 de este documento describen los **endpoints vigentes** de autenticación, auto-registro, usuarios, bitácora y personas (voluntarios, escuelas, tutores y niños). Contratos completos: [`fases/Fase_2_Prompts_Task_Document.md`](fases/Fase_2_Prompts_Task_Document.md) §3 y [`fases/Fase_3_Contratos.md`](fases/Fase_3_Contratos.md). Las secciones de eventos, cartas y dashboard (§3.6–§3.8) siguen siendo el diseño original y se actualizarán en las Fases 4 y 7.
+> ✅ **Actualizado en las Fases 2 y 3 (2026-10-29; ADR-0004, ADR-0007, ADR-0008, ADR-0009, ADR-0010):** las secciones §3.1–§3.5 de este documento describen los **endpoints vigentes** de autenticación, auto-registro, usuarios, bitácora y personas (voluntarios, escuelas, tutores y niños). Contratos completos: [`fases/Fase_2_Prompts_Task_Document.md`](fases/Fase_2_Prompts_Task_Document.md) §3 y [`fases/Fase_3_Contratos.md`](fases/Fase_3_Contratos.md). **Fase 4 (2026-10-30, ADR-0011):** los endpoints vigentes de eventos y cartas están en [`fases/Fase_4_Contratos.md`](fases/Fase_4_Contratos.md) §4 y resumidos en §3.6–§3.7 abajo; el detalle original de esas secciones queda como referencia histórica. El dashboard (§3.8) se actualizará en la Fase 7.
 
 > 🔄 **Actualización 2026-10-23 (ADR-0009):** el backend es **Node.js + Express** (mismo stack que SEMA y My Best DataBase). Cambios de forma, no de reglas: **base URL `/api`** (antes `/api/v1`); **un solo token** de sesión de 8 h en `token` (sin `refresh_token` ni `POST /auth/refresh`); formato de error **plano** `{ "error": "mensaje", "code": "CODIGO", "details": [...] }` (los códigos y mensajes no cambian); no hay Swagger: esta especificación es la documentación de referencia. Endpoints vigentes de la Fase 1: `POST /api/auth/login` → `{ token, expires_in, user }`, `POST /api/auth/logout` → `204`, `GET /api/auth/me` → `{ user }`, `POST /api/auth/change-password` → `{ token, expires_in, user }`, `GET /api/health`, `GET /api/health/db`. Los esquemas JSON siguen en `snake_case`.
 
@@ -217,7 +217,19 @@ No hay `DELETE`: la baja es lógica (`is_active: false`). La regla `CHILD_HAS_AC
 
 ---
 
-### 3.6 Eventos
+### 3.6 Eventos (vigente — Fase 4, módulo `EVENTOS`; lectura también con `CARTAS`)
+
+| Método y ruta | Respuesta | Errores |
+|---|---|---|
+| `GET /api/events` `?page&page_size&search&status&event_type&order_by` | `Page<EventListItem>` | `401`, `403`, `422` |
+| `POST /api/events` | `201 { event }` (BORRADOR) | `409 DUPLICATE_EVENT` + `existing_id`, `422` |
+| `GET` / `PATCH /api/events/:id` | `{ event }` con `stats` | `400 EVENT_FIELD_LOCKED`, `400 EVENT_CLOSED`, `404` |
+| `POST /api/events/:id/status` `{ to_status }` | `{ event }` | `400 INVALID_STATUS_TRANSITION`, `403` (regresar sin ser ADMIN) |
+| `GET /api/events/:id/volunteers`, `GET …/volunteer-options` | `Page<EventVolunteerOut>`, `{ items }` | |
+| `POST /api/events/:id/volunteers` `{ volunteer_ids, area?, status?, notes? }` | `201 { added, skipped }` | `400 EVENT_CLOSED`, `422` |
+| `PATCH /api/events/:id/volunteers/:volunteerId` | `{ participation }` | `404`, `422` |
+
+> Diseño original (referencia):
 
 #### 25. `GET /events` — 🔑
 Query: `status`, `event_type`. VOLUNTARIO y TUTOR solo ven eventos `ABIERTO` y `EN_CURSO`.
@@ -246,7 +258,22 @@ Body: `{ "status": "CONFIRMADO", "assigned_area": "GUIA_NINOS" }` → `EventVolu
 
 ---
 
-### 3.7 Cartas y regalos
+### 3.7 Cartas y regalos (vigente — Fase 4, módulo `CARTAS`)
+
+| Método y ruta | Respuesta | Errores principales |
+|---|---|---|
+| `GET /api/letters` (+ `/summary`, `/export`) | `Page<LetterListItem>` / conteos / CSV auditado | `422` |
+| `GET /api/letters/eligible-children`, `/sponsor-options` `?event_id&search` | `{ items }` | `422` sin evento |
+| `GET /api/letters/by-code/:code` | `{ letter }` | `404` |
+| `POST /api/letters` | `201 { letter }` con código `NAV26-000001` | `400 EVENT_NOT_OPEN`, `400 EVENT_NOT_FOR_LETTERS`, `400 CONSENT_REQUIRED`, `409 LETTER_ALREADY_EXISTS` |
+| `GET` / `PATCH /api/letters/:id`, `GET …/history` | `{ letter }`, `{ items }` | `400 LETTER_LOCKED`, `409 LETTER_VERSION_CONFLICT` |
+| `POST /api/letters/:id/assign` `{ volunteer_id, version }` | `{ letter }` | `409 LETTER_ALREADY_ASSIGNED`, `400 SPONSOR_LIMIT_REACHED` |
+| `POST /api/letters/:id/release`, `POST …/status` `{ to_status, version }` | `{ letter }` | `400 INVALID_STATUS_TRANSITION`, `409 LETTER_STATUS_CHANGED`, `403` |
+| `POST` / `GET` / `DELETE /api/letters/:id/photo` | `{ letter }` / imagen | `413 FILE_TOO_LARGE`, `415 UNSUPPORTED_MEDIA_TYPE` |
+
+El padrino es un **voluntario** (`sponsor_volunteer_id`), no un usuario; con `CARTAS` sin `BENEFICIARIOS` la niña o niño se ve restringido ("Sofía C."). Los endpoints `/letters/available`, `/letters/mine` y `/adopt` del diseño original pasan a la fase de nube.
+
+> Diseño original (referencia):
 
 **Vistas de carta**
 - `LetterOut` (A, T): todo, incluido el niño completo y el padrino (`id`, nombre, teléfono, email).

@@ -27,7 +27,13 @@
     tutores: () => Tutores,
     ninos: () => Ninos,
     nino: () => NinoDetalle,
-    'nino-form': () => NinoForm
+    'nino-form': () => NinoForm,
+    eventos: () => Eventos,
+    evento: () => EventoDetalle,
+    cartas: () => Cartas,
+    carta: () => CartaDetalle,
+    'carta-form': () => CartaForm,
+    buscar: () => Buscar
     // Las demás vistas del menú usan Proximamente hasta que llegue su fase
   };
   const DEFAULT_VIEW = 'inicio';
