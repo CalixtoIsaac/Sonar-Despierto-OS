@@ -75,6 +75,7 @@ async function smokeTest() {
     await smokeRegistration(json, { Authorization: `Bearer ${changed.body.token}` });
     await smokePeople(json, { Authorization: `Bearer ${changed.body.token}` });
     await smokeLetters(json, { Authorization: `Bearer ${changed.body.token}` });
+    await smokeCalendar(json, { Authorization: `Bearer ${changed.body.token}` }, me.body.user.id);
     console.log('  PRUEBA DE HUMO OK');
   } finally {
     child.kill();
@@ -164,6 +165,26 @@ async function smokeLetters(json, admin) {
   expect(hist.body.items.map((x) => x.to_status).join() === 'PENDIENTE,ASIGNADO', 'historial');
   const byCode = await json('/api/letters/by-code/humo-1', { headers: admin });
   expect(byCode.status === 200 && byCode.body.letter.id === id, 'búsqueda por código');
+}
+
+/** Fase 5: crear, mover y filtrar actividades; aviso de traslape del mismo responsable. */
+async function smokeCalendar(json, admin, adminId) {
+  const expect = (cond, msg) => { if (!cond) throw new Error(`calendario: ${msg}`); };
+  const send = (method, url, body) => json(url, { method, headers: admin, body: JSON.stringify(body) });
+  const base = { title: 'Junta de humo', activity_type: 'JUNTA', activity_date: '2026-11-10', start_time: '10:00', end_time: '11:00',
+    responsible_user_id: adminId };
+  const a = await send('POST', '/api/activities', base);
+  expect(a.status === 201 && a.body.activity.status === 'PROGRAMADA', `alta ${a.status}`);
+  const clash = { ...base, title: 'Acopio de humo', activity_type: 'ACOPIO', start_time: '10:30', end_time: '12:00' };
+  const overlap = await send('POST', '/api/activities', clash);
+  expect(overlap.status === 409 && overlap.body.code === 'ACTIVITY_OVERLAP' && overlap.body.conflicts[0].id === a.body.activity.id, 'traslape → 409');
+  expect((await send('POST', '/api/activities', { ...clash, allow_overlap: true })).status === 201, 'guardar de todos modos');
+  const moved = await send('PATCH', `/api/activities/${a.body.activity.id}`, { activity_date: '2026-11-12', version: 1 });
+  expect(moved.status === 200 && moved.body.activity.activity_date === '2026-11-12', 'mover');
+  const list = await json('/api/activities?date_from=2026-11-01&date_to=2026-11-30&activity_type=ACOPIO', { headers: admin });
+  expect(list.status === 200 && list.body.items.length === 1, 'filtro por tipo');
+  const audit = await json('/api/audit-logs?action=ACTIVITY_OVERLAP_ACCEPTED', { headers: admin });
+  expect(audit.body.total === 1, 'traslape aceptado en bitácora');
 }
 
 async function main() {

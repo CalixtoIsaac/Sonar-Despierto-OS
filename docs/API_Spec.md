@@ -1,6 +1,6 @@
 # Especificación de API (MVP) — Soñar Despierto
 
-> ✅ **Actualizado en las Fases 2 y 3 (2026-10-29; ADR-0004, ADR-0007, ADR-0008, ADR-0009, ADR-0010):** las secciones §3.1–§3.5 de este documento describen los **endpoints vigentes** de autenticación, auto-registro, usuarios, bitácora y personas (voluntarios, escuelas, tutores y niños). Contratos completos: [`fases/Fase_2_Prompts_Task_Document.md`](fases/Fase_2_Prompts_Task_Document.md) §3 y [`fases/Fase_3_Contratos.md`](fases/Fase_3_Contratos.md). **Fase 4 (2026-10-30, ADR-0011):** los endpoints vigentes de eventos y cartas están en [`fases/Fase_4_Contratos.md`](fases/Fase_4_Contratos.md) §4 y resumidos en §3.6–§3.7 abajo; el detalle original de esas secciones queda como referencia histórica. El dashboard (§3.8) se actualizará en la Fase 7.
+> ✅ **Actualizado en las Fases 2 y 3 (2026-10-29; ADR-0004, ADR-0007, ADR-0008, ADR-0009, ADR-0010):** las secciones §3.1–§3.5 de este documento describen los **endpoints vigentes** de autenticación, auto-registro, usuarios, bitácora y personas (voluntarios, escuelas, tutores y niños). Contratos completos: [`fases/Fase_2_Prompts_Task_Document.md`](fases/Fase_2_Prompts_Task_Document.md) §3 y [`fases/Fase_3_Contratos.md`](fases/Fase_3_Contratos.md). **Fase 4 (2026-10-30, ADR-0011):** los endpoints vigentes de eventos y cartas están en [`fases/Fase_4_Contratos.md`](fases/Fase_4_Contratos.md) §4 y resumidos en §3.6–§3.7 abajo; el detalle original de esas secciones queda como referencia histórica. **Fase 5 (2026-10-31, ADR-0012):** el calendario de actividades está en §3.10 abajo y completo en [`fases/Fase_5_Contratos.md`](fases/Fase_5_Contratos.md) §4. El dashboard (§3.8) se actualizará en la Fase 7.
 
 > 🔄 **Actualización 2026-10-23 (ADR-0009):** el backend es **Node.js + Express** (mismo stack que SEMA y My Best DataBase). Cambios de forma, no de reglas: **base URL `/api`** (antes `/api/v1`); **un solo token** de sesión de 8 h en `token` (sin `refresh_token` ni `POST /auth/refresh`); formato de error **plano** `{ "error": "mensaje", "code": "CODIGO", "details": [...] }` (los códigos y mensajes no cambian); no hay Swagger: esta especificación es la documentación de referencia. Endpoints vigentes de la Fase 1: `POST /api/auth/login` → `{ token, expires_in, user }`, `POST /api/auth/logout` → `204`, `GET /api/auth/me` → `{ user }`, `POST /api/auth/change-password` → `{ token, expires_in, user }`, `GET /api/health`, `GET /api/health/db`. Los esquemas JSON siguen en `snake_case`.
 
@@ -347,6 +347,20 @@ Cualquier otra → `400 INVALID_STATUS_TRANSITION`. Actualiza `received_at` / `d
 Búsqueda rápida en campo (centro de acopio / día del evento): escribir o escanear `NAV26-000123`. → `LetterOut`. `404` si no existe.
 
 ---
+
+### 3.10 Calendario de actividades (vigente — Fase 5, módulo `CALENDARIO`)
+
+| Método y ruta | Respuesta | Errores |
+|---|---|---|
+| `GET /api/activities?date_from&date_to&activity_type&responsible_id(id\|me)&event_id&volunteer_id&status&search` | `{ items, truncated }` | `422` (rango ≤ 92 días, obligatorio salvo con `event_id`) |
+| `GET /api/activities/overlaps?activity_date&start_time&end_time&responsible_id&exclude_id` | `{ items }` | `422` |
+| `GET /api/activities/responsible-options`, `GET /api/activities/event-options` | `{ items }` | |
+| `POST /api/activities` | `201 { activity }` | `409 ACTIVITY_OVERLAP` (+ `conflicts`), `400 EVENT_CLOSED`, `422` |
+| `GET` / `PATCH /api/activities/:id` | `{ activity }` | `404`, `409 ACTIVITY_OVERLAP`, `409 ACTIVITY_VERSION_CONFLICT`, `400 ACTIVITY_CANCELLED`, `422` |
+| `POST /api/activities/:id/status` `{ to_status, reason?, version?, allow_overlap? }` | `{ activity }` | `400 INVALID_STATUS_TRANSITION`, `409`, `422` |
+| `POST /api/activities/:id/volunteers` · `DELETE /api/activities/:id/volunteers/:volunteerId` · `GET /api/activities/:id/volunteer-options` | `201 { added, skipped }` · `204` · `{ items }` | `400 ACTIVITY_CANCELLED`, `404`, `422` |
+
+El traslape es un aviso: reenviar con `allow_overlap: true` guarda la actividad.
 
 ### 3.8 Dashboard
 

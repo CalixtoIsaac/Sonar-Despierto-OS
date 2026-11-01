@@ -1,5 +1,5 @@
 /**
- * Catálogos de personas (F3) y de eventos y cartas (F4) del lado del navegador.
+ * Catálogos de personas (F3), de eventos y cartas (F4) y del calendario (F5) del lado del navegador.
  * Espejo de lib/catalogs.js (lo verifica una prueba).
  */
 const Catalogos = (() => {
@@ -33,6 +33,13 @@ const Catalogos = (() => {
   const DEFAULT_LETTERS_PER_SPONSOR = 3;
   const MAX_LETTERS_PER_SPONSOR = 20;
 
+  // Fase 5 — calendario de actividades (ADR-0012)
+  const ACTIVITY_TYPES = ['JUNTA', 'CAPACITACION', 'ACOPIO', 'EVENTO', 'OTRO'];
+  const ACTIVITY_TYPE_LABEL = { JUNTA: 'Junta', CAPACITACION: 'Capacitación', ACOPIO: 'Acopio', EVENTO: 'Evento', OTRO: 'Otra' };
+  const ACTIVITY_STATUSES = ['PROGRAMADA', 'REALIZADA', 'CANCELADA'];
+  const ACTIVITY_STATUS_LABEL = { PROGRAMADA: 'Programada', REALIZADA: 'Realizada', CANCELADA: 'Cancelada' };
+  const ACTIVITY_MAX_RANGE_DAYS = 92;
+
   // Filtro "estado" de los listados de personas → is_active de la API
   const ESTADO_OPTIONS = [['', 'Activos'], ['inactivos', 'Dados de baja'], ['todos', 'Todos']];
   const estadoToActive = (estado) => (estado === 'inactivos' ? 'false' : (estado === 'todos' ? undefined : 'true'));
@@ -41,6 +48,7 @@ const Catalogos = (() => {
     SHIRT_SIZES, VOLUNTEER_AREAS, VOLUNTEER_AREA_LABEL, GENDERS, GENDER_LABEL, CHILD_MAX_AGE, VOLUNTEER_MIN_AGE,
     EVENT_TYPES, EVENT_TYPE_LABEL, EVENT_STATUSES, EVENT_STATUS_LABEL, PARTICIPATION_STATUSES, PARTICIPATION_STATUS_LABEL,
     LETTER_STATUSES, LETTER_STATUS_LABEL, LETTER_EVENT_TYPES, DEFAULT_LETTERS_PER_SPONSOR, MAX_LETTERS_PER_SPONSOR,
+    ACTIVITY_TYPES, ACTIVITY_TYPE_LABEL, ACTIVITY_STATUSES, ACTIVITY_STATUS_LABEL, ACTIVITY_MAX_RANGE_DAYS,
     ESTADO_OPTIONS, estadoToActive
   };
 })();

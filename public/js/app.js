@@ -33,7 +33,9 @@
     cartas: () => Cartas,
     carta: () => CartaDetalle,
     'carta-form': () => CartaForm,
-    buscar: () => Buscar
+    buscar: () => Buscar,
+    calendario: () => Calendario,
+    actividad: () => ActividadDetalle
     // Las demás vistas del menú usan Proximamente hasta que llegue su fase
   };
   const DEFAULT_VIEW = 'inicio';

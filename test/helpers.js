@@ -205,10 +205,26 @@ async function operatorSession(modules) {
   return { user, token: await login(user.email, password) };
 }
 
+// ---------- Fase 5: calendario ----------
+let activityCounter = 0;
+/** Cuerpo válido de POST /api/activities para el responsable indicado. */
+function activityPayload(responsibleId, overrides = {}) {
+  return { title: `Junta de logística ${++activityCounter}`, activity_type: 'JUNTA', activity_date: '2026-11-10',
+    start_time: '10:00', end_time: '11:00', location: 'Oficina', description: 'Revisión de pendientes',
+    responsible_user_id: responsibleId, ...overrides };
+}
+
+async function makeActivity(token, responsibleId, overrides = {}) {
+  const r = await request('POST', '/api/activities', { token, body: activityPayload(responsibleId, overrides) });
+  if (r.status !== 201) throw new Error(`actividad ${r.status}: ${r.text}`);
+  return r.body.activity;
+}
+
 module.exports = {
   baseUrl: () => baseUrl,
   dataDir, start, stop, resetDb, request, makeUser, login, auditActions, auditRows,
   registerPayload, pendingUser, adminSession, operatorSession,
   schoolPayload, tutorPayload, volunteerPayload, childPayload,
-  eventPayload, openEvent, makeChild, makeVolunteer, makeLetter
+  eventPayload, openEvent, makeChild, makeVolunteer, makeLetter,
+  activityPayload, makeActivity
 };

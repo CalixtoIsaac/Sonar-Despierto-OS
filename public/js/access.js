@@ -33,7 +33,8 @@ const Access = (() => {
    */
   const VIEWS = [
     { key: 'inicio', label: 'Inicio', icon: 'home', section: 'General', ready: true },
-    { key: 'calendario', label: 'Calendario', icon: 'calendarRange', module: 'CALENDARIO', section: 'Operación' },
+    { key: 'calendario', label: 'Calendario', icon: 'calendarRange', module: 'CALENDARIO', section: 'Operación', ready: true },
+    { key: 'actividad', label: 'Actividad', icon: 'calendarRange', module: 'CALENDARIO', hidden: true, ready: true, parent: 'calendario' },
     { key: 'eventos', label: 'Eventos', icon: 'calendarDays', module: 'EVENTOS', section: 'Operación', ready: true },
     { key: 'evento', label: 'Detalle de evento', icon: 'calendarDays', module: 'EVENTOS', hidden: true, ready: true, parent: 'eventos' },
     { key: 'cartas', label: 'Cartas', icon: 'mail', module: 'CARTAS', section: 'Operación', ready: true },
