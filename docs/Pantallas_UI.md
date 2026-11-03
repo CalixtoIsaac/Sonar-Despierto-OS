@@ -28,8 +28,15 @@
 | P16 Registro de carta | `/app#carta-form[/<id>]` | `CARTAS` | Niñas y niños elegibles (con motivo si no), deseos, foto con cámara; código en grande al guardar |
 | P17 Detalle de carta | `/app#carta/<id>` | `CARTAS` | Avance, acciones según estatus con diálogo, foto ampliable, padrino, historial en línea de tiempo |
 | P18 Búsqueda por código | `/app#buscar` | `CARTAS` | Campo grande para teclado o lector, un botón con la siguiente acción, lista de lo hecho |
+| P25 Calendario | `/app#calendario` | `CALENDARIO` | Vistas Mes / Semana / Agenda; filtros (tipo, responsable, evento, búsqueda, canceladas); arrastrar para mover; en el celular, puntos por día y lista del día |
+| P26 Detalle de actividad | `/app#actividad/<id>` | `CALENDARIO` | Aviso de traslape; Editar o mover, Cancelar con motivo, Marcar realizada, Reprogramar; voluntarios convocados |
+| P19 Inventario | `/app#inventario` | `INVENTARIO` | Resumen (activos, con existencia, existencia baja, centros); filtros (categoría, centro, existencia, estado); Entrada · Salida · Kardex por artículo; nuevo artículo; CSV |
+| P19b Registrar movimiento (diálogo) | — | `INVENTARIO` | Entrada / Salida / Traspaso; varios artículos con búsqueda y existencia del centro; error de existencia bajo la línea |
+| P20 Artículo y kardex | `/app#articulo/<id>` | `INVENTARIO` | Existencia total y por centro; kardex con saldo, filtros por centro y fechas, totales, Anular y CSV |
+| P21 Movimientos | `/app#movimientos` | `INVENTARIO` | Libro de entradas, salidas, traspasos y anulaciones con filtros (tipo, motivo, centro, fechas, "Solo yo") |
+| P21b Centros y categorías | `/app#inventario-catalogos` | `INVENTARIO` | Pestañas; alta, edición y baja lógica; un centro con existencias no se da de baja |
 
-Componentes compartidos: `ui-kit.js` (API, diálogos, `buildQuery`, `download`), `components.js` (selector de módulos, paginación, contraseña temporal, estados, formularios con errores por campo), `listado.js` (pantallas de listado), `fechas.js`, `phone.js`, `audit.js`, `catalogos.js`. Todas las pantallas tienen estados de carga, vacío y error y se probaron a 360 px en tema claro y oscuro.
+Componentes compartidos: `ui-kit.js` (API, diálogos, `buildQuery`, `download`), `components.js` (selector de módulos, paginación, contraseña temporal, estados, formularios con errores por campo), `listado.js` (pantallas de listado, con filtros de fecha desde la F6), `inventario-ui.js` (diálogos de movimiento y anulación), `fechas.js`, `phone.js`, `audit.js`, `catalogos.js`. Todas las pantallas tienen estados de carga, vacío y error y se probaron a 360 px en tema claro y oscuro.
 
 > **Versión:** 1.0 · **Frontend:** HTML5 + CSS3 + JavaScript Vanilla (multipágina) · **Idioma:** Español
 > **Documentos relacionados:** `API_Spec.md` (endpoints que consume cada pantalla), `Modelo_Datos.md`

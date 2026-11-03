@@ -47,7 +47,7 @@ test('Access: estados de cuenta, módulos sensibles, menú y hash', () => {
   const admin = Access.visibleMenu({ role: 'ADMIN', modules: [] }).map((v) => v.key);
   assert.ok(!admin.includes('usuario'), 'las vistas ocultas no aparecen en el menú');
   assert.equal(admin.indexOf('bitacora'), admin.indexOf('usuarios') + 1, 'Bitácora va después de Usuarios');
-  assert.equal(admin.length, 14);
+  assert.equal(admin.length, 16); // + Movimientos y Centros y categorías (F6)
   assert.deepEqual(Access.parseHash('#usuario/7?x=1'), { key: 'usuario', id: '7', params: { x: '1' } });
   assert.deepEqual(Access.parseHash('#'), { key: 'inicio', id: null, params: {} });
   assert.equal(Access.buildHash('usuarios', null, { tab: 'solicitudes', q: '', page: 2 }), '#usuarios?tab=solicitudes&page=2');
@@ -186,4 +186,107 @@ test('F4: Audit — textos de eventos y cartas y enlaces a sus fichas', () => {
   assert.equal(d('DATA_EXPORTED', { format: 'csv', count: 3, filters: { event_id: 1 } }), '3 cartas en CSV (con filtros)');
   assert.equal(Audit.entityHref('letters', 5), '#carta/5');
   assert.equal(Audit.entityHref('events', 2), '#evento/2');
+});
+
+test('F5: catálogos del calendario = lib/catalogs.js; vistas protegidas por CALENDARIO', () => {
+  const Catalogos = require('../public/js/catalogos');
+  const cat = require('../lib/catalogs');
+  assert.deepEqual(Catalogos.ACTIVITY_TYPES, [...cat.ACTIVITY_TYPES]);
+  assert.deepEqual(Catalogos.ACTIVITY_STATUSES, [...cat.ACTIVITY_STATUSES]);
+  assert.deepEqual(Catalogos.ACTIVITY_TYPE_LABEL, { ...cat.ACTIVITY_TYPE_LABELS });
+  assert.deepEqual(Catalogos.ACTIVITY_STATUS_LABEL, { ...cat.ACTIVITY_STATUS_LABELS });
+  assert.equal(Catalogos.ACTIVITY_MAX_RANGE_DAYS, cat.ACTIVITY_MAX_RANGE_DAYS);
+  assert.deepEqual({ ...Audit.ACTIVITY_STATUS_LABEL }, { ...cat.ACTIVITY_STATUS_LABELS });
+  for (const key of ['calendario', 'actividad']) {
+    assert.equal(Access.viewByKey(key).module, 'CALENDARIO', key);
+    assert.ok(Access.viewByKey(key).ready, key);
+  }
+  assert.deepEqual(Access.visibleMenu({ role: 'OPERADOR', modules: ['CALENDARIO'] }).map((v) => v.key), ['inicio', 'calendario', 'perfil']);
+});
+
+test('F5: CalendarioUI — rangos, títulos, navegación y parámetros', () => {
+  global.Catalogos = require('../public/js/catalogos');
+  const CU = require('../public/js/calendario-ui');
+  const mes = CU.rangeFor('mes', '2026-11-18');
+  assert.equal(mes.from, '2026-10-26', 'empieza en lunes');
+  assert.equal(mes.to, '2026-12-06');
+  assert.equal(mes.days.length, 42);
+  assert.deepEqual(CU.rangeFor('semana', '2026-11-18'), { from: '2026-11-16', to: '2026-11-22',
+    days: ['2026-11-16', '2026-11-17', '2026-11-18', '2026-11-19', '2026-11-20', '2026-11-21', '2026-11-22'] });
+  assert.equal(CU.rangeFor('semana', '2026-11-22').from, '2026-11-16', 'el domingo cierra la semana');
+  const agenda = CU.rangeFor('agenda', '2026-02-10');
+  assert.deepEqual([agenda.from, agenda.to, agenda.days.length], ['2026-02-01', '2026-02-28', 28]);
+  assert.equal(CU.shift('mes', '2026-01-31', 1), '2026-02-01');
+  assert.equal(CU.shift('mes', '2026-01-15', -1), '2025-12-01');
+  assert.equal(CU.shift('semana', '2026-12-28', 1), '2027-01-04');
+  assert.equal(CU.titleFor('mes', '2026-11-03'), 'noviembre 2026');
+  assert.equal(CU.titleFor('semana', '2026-11-18'), '16 – 22 nov 2026');
+  assert.equal(CU.titleFor('semana', '2026-12-01'), '30 nov – 6 dic 2026');
+  assert.equal(CU.titleFor('semana', '2026-12-30'), '28 dic 2026 – 3 ene 2027');
+  assert.equal(CU.longDay('2026-11-10'), 'Martes 10 de noviembre');
+  assert.equal(CU.isValidDate('2026-02-30'), false);
+  const p = CU.readParams({ vista: 'semana', fecha: '2026-02-30', tipo: 'FIESTA', resp: 'me', evento: '3', canceladas: '1' }, '2026-11-01');
+  assert.deepEqual(p, { vista: 'semana', fecha: '2026-11-01', tipo: '', resp: 'me', evento: '3', q: '', canceladas: '1' });
+  assert.equal(CU.readParams({}, '2026-11-01').vista, 'mes');
+});
+
+test('F5: CalendarioUI — carriles de la vista semanal y horas visibles', () => {
+  const CU = require('../public/js/calendario-ui');
+  const a = { start_time: '10:00', end_time: '11:00' };
+  const b = { start_time: '10:30', end_time: '12:00' };
+  const c = { start_time: '11:00', end_time: '11:30' };
+  const d = { start_time: '13:00', end_time: '14:00' };
+  assert.deepEqual(CU.layoutDay([a, b, c, d]).map((x) => [x.lane, x.lanes]), [[0, 2], [1, 2], [0, 2], [0, 1]]);
+  assert.deepEqual(CU.layoutDay([]), []);
+  assert.deepEqual(CU.hourBounds([]), { start: 7, end: 21 });
+  assert.deepEqual(CU.hourBounds([{ start_time: '06:30', end_time: '22:15' }]), { start: 6, end: 23 });
+  assert.equal(CU.fromMinutes(CU.toMinutes('09:45') + 75), '11:00');
+  assert.equal(CU.conflictText([{ title: 'Junta', start_time: '10:00', end_time: '11:00' }]), 'Junta (10:00–11:00)');
+  assert.deepEqual(Object.keys(CU.TYPE_META), require('../lib/catalogs').ACTIVITY_TYPES.slice());
+});
+
+test('F5: Audit — textos del calendario y enlace a la actividad', () => {
+  const d = (action, detail) => Audit.describeAuditDetail({ action, detail, entity: 'activities' });
+  assert.equal(d('ACTIVITY_STATUS_CHANGED', { from: 'PROGRAMADA', to: 'CANCELADA' }), 'Programada → Cancelada');
+  assert.equal(d('ACTIVITY_VOLUNTEERS_ADDED', { volunteer_ids: [1, 2, 3], count: 3 }), '3 voluntarios');
+  assert.equal(d('ACTIVITY_VOLUNTEER_REMOVED', { volunteer_id: 4 }), 'Voluntario #4');
+  assert.equal(d('ACTIVITY_OVERLAP_ACCEPTED', { with: [7] }), 'Se cruza con la actividad #7');
+  assert.equal(d('RECORD_UPDATED', { changed: ['activity_date', 'start_time', 'responsible_user_id'] }), 'Campos: fecha, hora de inicio, responsable');
+  assert.equal(Audit.entityHref('activities', 9), '#actividad/9');
+  assert.equal(Audit.AUDIT_ACTION_GROUP.ACTIVITY_OVERLAP_ACCEPTED, 'calendario');
+});
+
+test('F6: catálogos de inventario = lib/catalogs.js; vistas protegidas por INVENTARIO; textos de la bitácora', () => {
+  const Catalogos = require('../public/js/catalogos');
+  const cat = require('../lib/catalogs');
+  assert.deepEqual(Catalogos.INVENTORY_UNITS, [...cat.INVENTORY_UNITS]);
+  assert.deepEqual(Catalogos.INVENTORY_UNIT_LABEL, { ...cat.INVENTORY_UNIT_LABELS });
+  assert.deepEqual(Object.keys(Catalogos.INVENTORY_UNIT_PLURAL), [...cat.INVENTORY_UNITS]);
+  assert.deepEqual(Catalogos.ENTRY_REASONS, [...cat.ENTRY_REASONS]);
+  assert.deepEqual(Catalogos.EXIT_REASONS, [...cat.EXIT_REASONS]);
+  assert.deepEqual(Catalogos.MOVEMENT_REASON_LABEL, { ...cat.MOVEMENT_REASON_LABELS });
+  assert.deepEqual(Audit.MOVEMENT_REASON_LABEL, { ...cat.MOVEMENT_REASON_LABELS });
+  assert.equal(Catalogos.INVENTORY_MAX_QUANTITY, cat.INVENTORY_MAX_QUANTITY);
+  assert.equal(Catalogos.INVENTORY_MAX_LINES, cat.INVENTORY_MAX_LINES);
+
+  const invOnly = { role: 'OPERADOR', modules: ['INVENTARIO'] };
+  for (const key of ['inventario', 'articulo', 'movimientos', 'inventario-catalogos']) {
+    const view = Access.viewByKey(key);
+    assert.equal(view.module, 'INVENTARIO', key);
+    assert.ok(view.ready, key);
+    assert.ok(Access.canSee(invOnly, view), key);
+    assert.equal(Access.canSee({ role: 'OPERADOR', modules: ['CARTAS'] }, view), false, key);
+  }
+  assert.deepEqual(Access.visibleMenu(invOnly).map((v) => v.key), ['inicio', 'inventario', 'movimientos', 'inventario-catalogos', 'perfil']);
+
+  const d = (action, detail, entity = 'inventory_items') => Audit.describeAuditDetail({ action, detail, entity });
+  assert.equal(d('INVENTORY_MOVEMENT_CREATED', { type: 'SALIDA', reason: 'MERMA', quantity: 3, center_id: 2 }),
+    'Salida · Merma o daño · centro #2 · 3 unidades');
+  assert.equal(d('INVENTORY_MOVEMENT_CREATED', { type: 'TRASPASO', reason: 'TRASPASO', quantity: 1, center_id: 1, to_center_id: 4 }),
+    'Traspaso del centro #1 al #4 · 1 unidad');
+  assert.equal(d('INVENTORY_MOVEMENT_REVERSED', { reversed_ids: [5, 6] }), 'Anuló los movimientos #5, #6');
+  assert.equal(d('DATA_EXPORTED', { count: 4, filters: {} }), '4 existencias de inventario en CSV');
+  assert.equal(Audit.entityHref('inventory_items', 9), '#articulo/9');
+  assert.equal(Audit.entityHref('collection_centers', 2), '#inventario-catalogos?tab=centros&ver=2');
+  assert.equal(Audit.entityHref('inventory_categories', 3), '#inventario-catalogos?tab=categorias&ver=3');
 });

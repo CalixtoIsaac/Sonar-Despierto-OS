@@ -186,6 +186,28 @@ const EventoDetalle = (() => {
     load();
   }
 
+  // ---------- Actividades del evento (Calendario, F5) ----------
+  async function mountActivities(el, event, ctx) {
+    const closed = event.status === 'CERRADO';
+    el.innerHTML = `<div class="panel-head"><h3 class="panel-title">Actividades del evento</h3>
+        <span class="row-actions"><a class="btn btn-outline btn-sm" href="#calendario?evento=${event.id}&vista=agenda&fecha=${esc(event.event_date)}">${UI.icon('calendarRange')}Ver en el calendario</a>
+        ${closed ? '' : `<button type="button" class="btn btn-primary btn-sm" data-new-act>${UI.icon('plus')}Nueva actividad</button>`}</span></div><div data-acts>${Components.loading(2)}</div>`;
+    const box = el.querySelector('[data-acts]');
+    const load = async () => {
+      try {
+        const { items } = await UI.api(`/activities${UI.buildQuery({ event_id: event.id, status: ['PROGRAMADA', 'REALIZADA'] })}`);
+        box.innerHTML = items.length ? `<ul class="cal-agenda-list cal-agenda-wide">${items.map((a) => `<li><a class="cal-agenda-item" href="#actividad/${a.id}">
+            <span class="cal-agenda-time">${esc(Fechas.formatDate(a.activity_date))}<span class="muted">${esc(CalendarioUI.timeRange(a))}</span></span>
+            <span class="cal-agenda-main"><strong>${esc(a.title)}</strong><span class="cal-agenda-meta">${CalendarioUI.typeChip(a.activity_type)}${a.status !== 'PROGRAMADA' ? CalendarioUI.statusBadge(a.status) : ''}</span>
+            <span class="muted">${[a.location, a.responsible && `Responsable: ${a.responsible.full_name}`].filter(Boolean).map(esc).join(' · ')}</span></span></a></li>`).join('')}</ul>`
+          : Components.empty({ iconName: 'calendarRange', title: 'Sin actividades', text: closed ? '' : 'Agrega juntas, capacitaciones o acopios para preparar el evento.' });
+      } catch (err) { Components.error(box, err, load); }
+    };
+    const btn = el.querySelector('[data-new-act]');
+    if (btn) btn.addEventListener('click', () => ActividadForm.open({ user: ctx.user, defaults: { event_id: String(event.id) }, onSaved: load }));
+    load();
+  }
+
   // ---------- Página ----------
   function renderSummary(el, event, ctx) {
     const s = event.stats;
@@ -252,7 +274,8 @@ const EventoDetalle = (() => {
         </div>
         <div data-summary></div>
       </div>
-      <section class="card panel section-gap" data-volunteers></section>`;
+      <section class="card panel section-gap" data-volunteers></section>
+      ${Access.canSee(ctx.user, Access.viewByKey('calendario')) ? '<section class="card panel section-gap" data-activities></section>' : ''}`;
     renderSummary(container.querySelector('[data-summary]'), event, ctx);
     const refreshEvent = async () => {
       try {
@@ -262,6 +285,8 @@ const EventoDetalle = (() => {
       } catch { /* el resumen no es crítico */ }
     };
     mountVolunteers(container.querySelector('[data-volunteers]'), event, ctx, refreshEvent);
+    const actsEl = container.querySelector('[data-activities]');
+    if (actsEl) mountActivities(actsEl, event, ctx);
     const edit = container.querySelector('[data-edit]');
     if (edit) edit.addEventListener('click', () => Eventos.openForm(event, reload));
     container.querySelectorAll('[data-next], [data-back]').forEach((b) => b.addEventListener('click', () => changeStatus(event, b.dataset.next || b.dataset.back, reload)));

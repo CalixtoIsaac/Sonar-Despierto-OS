@@ -4,9 +4,9 @@
 
 > ⚠️ **Actualización 2026-10-17:** en el MVP local el motor es **SQLite** con reglas de portabilidad (ADR-0002); el DDL MySQL de §8 queda como referencia para la nube. Roles `ADMIN`/`OPERADOR` con la tabla `user_module_permissions` y `users.token_version` (ADR-0004, ADR-0007). `volunteer_profiles` y `tutor_profiles` pasarán a ser entidades independientes sin cuenta, y las FK a `users` de padrinos y tutores cambiarán (tabla de cambios en ADR-0004); esta sección se actualizará al inicio de las Fases 3 y 4. Donde haya contradicción, mandan los ADR de [`adr/`](adr/README.md).
 
-> ✅ **Esquema vigente (Fases 1–4, 2026-10-30):** la sección **§0** describe las tablas que existen hoy en `lib/migrations.js` (migraciones 1 a 4). En la F4 `letters.sponsor_user_id` pasó a ser `letters.sponsor_volunteer_id → volunteers` y `event_volunteers.user_id` pasó a `volunteer_id` (ADR-0004, ADR-0011). Las secciones §2–§8 conservan el diseño original como referencia para las fases siguientes y para la nube; donde contradigan a §0, manda §0. En particular, `volunteer_profiles` y `tutor_profiles` (§4.2–§4.3) **no existen**: se sustituyeron por `volunteers` y `tutors` sin cuenta (ADR-0004), y `children.tutor_user_id` es ahora `children.tutor_id → tutors` (opcional, ADR-0010).
+> ✅ **Esquema vigente (Fases 1–6, 2026-11-02):** la sección **§0** describe las tablas que existen hoy en `lib/migrations.js` (migraciones 1 a 6; el calendario está en §0.4 y el inventario en §0.5). En la F4 `letters.sponsor_user_id` pasó a ser `letters.sponsor_volunteer_id → volunteers` y `event_volunteers.user_id` pasó a `volunteer_id` (ADR-0004, ADR-0011). Las secciones §2–§8 conservan el diseño original como referencia para las fases siguientes y para la nube; donde contradigan a §0, manda §0. En particular, `volunteer_profiles` y `tutor_profiles` (§4.2–§4.3) **no existen**: se sustituyeron por `volunteers` y `tutors` sin cuenta (ADR-0004), y `children.tutor_user_id` es ahora `children.tutor_id → tutors` (opcional, ADR-0010).
 
-## 0. Esquema vigente (SQLite, migraciones 1–4)
+## 0. Esquema vigente (SQLite, migraciones 1–6)
 
 | Migración | Tablas / cambios |
 |---|---|
@@ -14,6 +14,8 @@
 | 2 (F2) | `users` + `account_status`, `requested_modules`, `registration_note`, `confidentiality_accepted_at`, `reviewed_by_id`, `reviewed_at`, `review_note` |
 | 3 (F3) | `schools`, `tutors`, `volunteers`, `children` |
 | 4 (F4) | `events`, `event_volunteers`, `letters`, `letter_status_history` (+ disparador de solo inserción) |
+| 5 (F5) | `activities`, `activity_volunteers` |
+| 6 (F6) | `inventory_categories` (+ 6 categorías sugeridas), `collection_centers`, `inventory_items`, `inventory_movements` (+ disparadores: sin `UPDATE` y sin existencia negativa) |
 
 ### 0.1 `users` — cuentas del personal (F1 + F2)
 
@@ -52,6 +54,26 @@ Invariante: `account_status ≠ 'APROBADA' ⇒ is_active = 0`. Siempre queda al 
 `user_module_permissions (id, user_id → users ON DELETE CASCADE, module CHECK IN (7 módulos), created_at, UNIQUE(user_id, module))`. El ADMIN no tiene filas: tiene todos.
 
 `audit_logs (id, user_id → users ON DELETE SET NULL [actor], action, entity, entity_id, detail JSON, ip_address, created_at)`. Catálogo de acciones en `lib/audit-actions.js` (21 en la F3). `detail` nunca contiene contraseñas, tokens ni datos de niñas y niños.
+
+### 0.4 Calendario (F5, ADR-0012)
+
+| Tabla | Columnas principales | Restricciones |
+|---|---|---|
+| `activities` | `title`, `title_key`, `description`, `activity_type` (`JUNTA`, `CAPACITACION`, `ACOPIO`, `EVENTO`, `OTRO`), `activity_date` (`YYYY-MM-DD` local), `start_time` / `end_time` (`HH:MM` local), `location`, `responsible_user_id → users` (`SET NULL`), `event_id → events` (`SET NULL`), `status` (`PROGRAMADA`, `REALIZADA`, `CANCELADA`), `cancel_reason`, `version`, `created_by_id`, fechas | `CHECK (end_time > start_time)`; `cancel_reason` solo y siempre en `CANCELADA`; índices `(activity_date, start_time)`, `(responsible_user_id, activity_date)`, `(event_id)` |
+| `activity_volunteers` | `activity_id → activities` (`CASCADE`), `volunteer_id → volunteers` (`RESTRICT`), `created_by_id`, `created_at` | `UNIQUE (activity_id, volunteer_id)` |
+
+Las horas del calendario son locales (Veracruz) y no se convierten a UTC. Detalle: [`fases/Fase_5_Contratos.md`](fases/Fase_5_Contratos.md) §2.
+
+### 0.5 Inventario (F6, ADR-0006 y ADR-0013)
+
+| Tabla | Columnas principales | Restricciones |
+|---|---|---|
+| `inventory_categories` | `name`, `name_key`, `description`, `is_active`, `created_by_id`, fechas | `UNIQUE (name_key)` |
+| `collection_centers` | `name`, `name_key`, `address`, `contact_name`, `contact_phone`, `notes`, `is_active`, `created_by_id`, fechas | `UNIQUE (name_key)` |
+| `inventory_items` | `name`, `name_key`, `category_id → inventory_categories` (`RESTRICT`), `unit` (`PIEZA`, `PAR`, `JUEGO`, `CAJA`, `PAQUETE`, `BOLSA`, `KILOGRAMO`, `LITRO`), `min_stock`, `description`, `is_active`, `created_by_id`, fechas | `UNIQUE (category_id, name_key)` |
+| `inventory_movements` | `item_id`, `center_id` (`RESTRICT`), `direction` (`ENTRADA`, `SALIDA`), `reason` (`DONACION`, `COMPRA`, `DEVOLUCION`, `USO_EVENTO`, `ENTREGA`, `MERMA`, `AJUSTE`, `OTRO`, `TRASPASO`, `ANULACION`), `quantity` (> 0), `movement_date` (`YYYY-MM-DD` local), `event_id → events` (`SET NULL`), `counterpart`, `notes`, `search_key`, `transfer_id`, `reverses_id → inventory_movements`, `created_by_id`, `created_at` | `ANULACION ⇔ reverses_id`, `TRASPASO ⇔ transfer_id`, `UNIQUE (reverses_id)`; disparadores: solo inserción y ninguna salida deja la existencia del centro en negativo |
+
+Las existencias **no se guardan**: `SUM(entradas) − SUM(salidas)` por artículo y centro. Detalle: [`fases/Fase_6_Contratos.md`](fases/Fase_6_Contratos.md) §2–§3.
 
 ### 0.3 Eventos y cartas (F4, ADR-0011)
 

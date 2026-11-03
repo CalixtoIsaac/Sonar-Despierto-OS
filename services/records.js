@@ -17,7 +17,7 @@ const { searchTokens } = require('../lib/text');
 const { recordAudit } = require('./audit');
 
 // Columnas calculadas: no se reportan como "cambiadas" en la bitácora
-const DERIVED_COLUMNS = new Set(['name_key', 'sort_key', 'zone_key', 'guardian_consent_at', 'is_active']);
+const DERIVED_COLUMNS = new Set(['name_key', 'sort_key', 'zone_key', 'guardian_consent_at', 'is_active', 'title_key']);
 
 const actorId = (actor) => (actor ? actor.id : null);
 const norm = (v) => (v === undefined ? null : (typeof v === 'boolean' ? (v ? 1 : 0) : v));

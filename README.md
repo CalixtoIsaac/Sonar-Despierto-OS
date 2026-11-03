@@ -110,4 +110,10 @@ docs/       requerimientos, modelo de datos, API, pantallas, ADR y fases
 - **Fase 4 — Eventos y cartas de Navidad:** ✅ (2026-10-30). Eventos con voluntarios y tallas, cartas con código
   `NAV26-000123`, foto privada, padrino (voluntario), máquina de estados con historial, búsqueda por código en campo y
   concurrencia segura (la segunda asignación simultánea recibe `409`) ([contratos](docs/fases/Fase_4_Contratos.md), ADR-0011).
-- **Siguiente:** Fase 5 — Calendario (y en paralelo la 6, Inventario). Fases 5–8: ver la [hoja de ruta](docs/Roadmap_Fases.md).
+- **Fase 5 — Calendario de actividades:** ✅ (2026-10-31). Juntas, capacitaciones, acopios y eventos en vistas de mes,
+  semana y agenda; filtros por tipo, responsable y evento; mover arrastrando; voluntarios convocados y aviso de traslape
+  de horario del mismo responsable (`409 ACTIVITY_OVERLAP` con "guardar de todos modos") ([contratos](docs/fases/Fase_5_Contratos.md), ADR-0012).
+- **Fase 6 — Inventario:** ✅ (2026-11-02). Categorías y centros de acopio editables, artículos, entradas, salidas y
+  traspasos de varios artículos a la vez, existencias calculadas por centro, anulaciones, kardex con saldos y CSV; una
+  salida mayor a la existencia se rechaza (`409 INSUFFICIENT_STOCK`) ([contratos](docs/fases/Fase_6_Contratos.md), ADR-0013).
+- **Siguiente:** Fase 7 — Dashboard y reportes. Fases 7–8: ver la [hoja de ruta](docs/Roadmap_Fases.md).
