@@ -362,6 +362,22 @@ Búsqueda rápida en campo (centro de acopio / día del evento): escribir o esca
 
 El traslape es un aviso: reenviar con `allow_overlap: true` guarda la actividad.
 
+### 3.11 Inventario (vigente — Fase 6, módulo `INVENTARIO`)
+
+| Método y ruta | Respuesta | Errores |
+|---|---|---|
+| `GET /api/inventory/summary` · `GET /api/inventory/options` | `{ items, with_stock, low_stock, centers }` · `{ categories, centers, events }` | |
+| `GET` / `POST /api/inventory/categories`, `GET` / `PATCH /api/inventory/categories/:id` | paginado · `{ category }` | `409 DUPLICATE_CATEGORY`, `404`, `422` |
+| `GET` / `POST /api/inventory/centers`, `GET` / `PATCH /api/inventory/centers/:id` | paginado · `{ center }` | `409 DUPLICATE_CENTER`, `409 CENTER_HAS_STOCK`, `404`, `422` |
+| `GET /api/inventory/items?search&category_id&center_id&is_active&stock(con\|sin\|bajo)&order_by` · `GET /api/inventory/items/export` | paginado con `total_stock`, `center_stock`, `low_stock` · CSV | `422` |
+| `POST /api/inventory/items` · `GET` / `PATCH /api/inventory/items/:id` | `{ item }` (+ `stock_by_center`) | `409 DUPLICATE_ITEM`, `409 ITEM_HAS_STOCK`, `400 ITEM_UNIT_LOCKED`, `404`, `422` |
+| `GET /api/inventory/items/:id/kardex?center_id&date_from&date_to&order` · `…/kardex/export` | `{ opening_balance, total_in, total_out, closing_balance, current_stock, items (con balance), … }` · CSV | `404`, `422` |
+| `GET /api/inventory/movements?item_id&center_id&direction&reason&event_id&date_from&date_to&search&mine` · `GET /api/inventory/movements/:id` | paginado · `{ movement }` | `404`, `422` |
+| `POST /api/inventory/movements { type: ENTRADA\|SALIDA\|TRASPASO, center_id, to_center_id?, reason?, movement_date?, event_id?, counterpart?, notes?, lines: [{ item_id, quantity }] }` | `201 { movements }` | **`409 INSUFFICIENT_STOCK`** (+ `available`, `requested`, `line`), `400 EVENT_CLOSED`, `422` |
+| `POST /api/inventory/movements/:id/reverse { reason }` | `201 { movements }` | `409 MOVEMENT_ALREADY_REVERSED`, `400 CANNOT_REVERSE_REVERSAL`, `403 FORBIDDEN`, `409 INSUFFICIENT_STOCK` |
+
+Las existencias se calculan de los movimientos; los movimientos no se editan: se anulan. Contratos completos: [`fases/Fase_6_Contratos.md`](fases/Fase_6_Contratos.md).
+
 ### 3.8 Dashboard
 
 #### 46. `GET /dashboard/summary?event_id=1` — 🔑

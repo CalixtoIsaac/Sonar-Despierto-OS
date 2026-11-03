@@ -113,4 +113,7 @@ docs/       requerimientos, modelo de datos, API, pantallas, ADR y fases
 - **Fase 5 — Calendario de actividades:** ✅ (2026-10-31). Juntas, capacitaciones, acopios y eventos en vistas de mes,
   semana y agenda; filtros por tipo, responsable y evento; mover arrastrando; voluntarios convocados y aviso de traslape
   de horario del mismo responsable (`409 ACTIVITY_OVERLAP` con "guardar de todos modos") ([contratos](docs/fases/Fase_5_Contratos.md), ADR-0012).
-- **Siguiente:** Fase 6 — Inventario (validar reglas con la directiva antes de iniciar). Fases 6–8: ver la [hoja de ruta](docs/Roadmap_Fases.md).
+- **Fase 6 — Inventario:** ✅ (2026-11-02). Categorías y centros de acopio editables, artículos, entradas, salidas y
+  traspasos de varios artículos a la vez, existencias calculadas por centro, anulaciones, kardex con saldos y CSV; una
+  salida mayor a la existencia se rechaza (`409 INSUFFICIENT_STOCK`) ([contratos](docs/fases/Fase_6_Contratos.md), ADR-0013).
+- **Siguiente:** Fase 7 — Dashboard y reportes. Fases 7–8: ver la [hoja de ruta](docs/Roadmap_Fases.md).

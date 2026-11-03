@@ -124,6 +124,28 @@ Menú Calendario (quien tenga el módulo Calendario):
 - En Inicio aparecen "Tus próximas actividades".
 
 
+EL INVENTARIO
+-------------
+Menús Inventario, Movimientos y Centros y categorías (quien tenga el
+módulo Inventario). Sirve para insumos, mobiliario y materiales; los
+regalos de las cartas se siguen en Cartas.
+- Primero registra los CENTROS DE ACOPIO (oficina, bodegas...) en
+  "Centros y categorías". Las categorías ya traen unas sugeridas
+  que puedes renombrar.
+- "Nuevo artículo": nombre, categoría, unidad (pieza, caja...) y,
+  si quieres, una existencia mínima para recibir un aviso.
+- "Registrar movimiento": ENTRADA (donación, compra...), SALIDA
+  (uso en evento, entrega, merma...) o TRASPASO entre centros. En
+  una sola captura puedes agregar varios artículos.
+- Las existencias se calculan solas. Si intentas sacar más de lo
+  que hay en ese centro, el sistema no lo permite y te dice
+  cuánto hay.
+- Un movimiento NO se edita ni se borra: si te equivocaste, ábrelo
+  y usa "Anular" (con un motivo). El kardex conserva los dos.
+- En cada artículo está su KARDEX: todos sus movimientos con el
+  saldo después de cada uno. Se puede exportar a Excel (CSV).
+
+
 LA BITÁCORA
 -----------
 Menú Bitácora (solo administradores): registra quién entró, quién

@@ -13,7 +13,8 @@ const Audit = (() => {
     'RECORD_CREATED', 'RECORD_UPDATED', 'RECORD_DEACTIVATED', 'RECORD_ACTIVATED', 'DATA_EXPORTED',
     'EVENT_STATUS_CHANGED', 'EVENT_VOLUNTEERS_ADDED', 'EVENT_VOLUNTEER_UPDATED',
     'LETTER_STATUS_CHANGED', 'LETTER_PHOTO_UPDATED', 'LETTER_PHOTO_REMOVED',
-    'ACTIVITY_STATUS_CHANGED', 'ACTIVITY_VOLUNTEERS_ADDED', 'ACTIVITY_VOLUNTEER_REMOVED', 'ACTIVITY_OVERLAP_ACCEPTED'
+    'ACTIVITY_STATUS_CHANGED', 'ACTIVITY_VOLUNTEERS_ADDED', 'ACTIVITY_VOLUNTEER_REMOVED', 'ACTIVITY_OVERLAP_ACCEPTED',
+    'INVENTORY_MOVEMENT_CREATED', 'INVENTORY_MOVEMENT_REVERSED'
   ];
 
   const AUDIT_ACTION_LABEL = {
@@ -47,7 +48,9 @@ const Audit = (() => {
     ACTIVITY_STATUS_CHANGED: 'Cambio de estatus de actividad',
     ACTIVITY_VOLUNTEERS_ADDED: 'Voluntarios agregados a la actividad',
     ACTIVITY_VOLUNTEER_REMOVED: 'Voluntario quitado de la actividad',
-    ACTIVITY_OVERLAP_ACCEPTED: 'Actividad guardada con traslape de horario'
+    ACTIVITY_OVERLAP_ACCEPTED: 'Actividad guardada con traslape de horario',
+    INVENTORY_MOVEMENT_CREATED: 'Movimiento de inventario registrado',
+    INVENTORY_MOVEMENT_REVERSED: 'Movimiento de inventario anulado'
   };
 
   const GROUPS = [
@@ -57,6 +60,7 @@ const Audit = (() => {
     { key: 'personas', label: 'Registros', icon: 'users' },
     { key: 'eventos', label: 'Eventos y cartas', icon: 'mail' },
     { key: 'calendario', label: 'Calendario', icon: 'calendarRange' },
+    { key: 'inventario', label: 'Inventario', icon: 'boxes' },
     { key: 'exportaciones', label: 'Exportaciones', icon: 'download' }
   ];
 
@@ -70,20 +74,27 @@ const Audit = (() => {
     EVENT_STATUS_CHANGED: 'eventos', EVENT_VOLUNTEERS_ADDED: 'eventos', EVENT_VOLUNTEER_UPDATED: 'eventos',
     LETTER_STATUS_CHANGED: 'eventos', LETTER_PHOTO_UPDATED: 'eventos', LETTER_PHOTO_REMOVED: 'eventos',
     ACTIVITY_STATUS_CHANGED: 'calendario', ACTIVITY_VOLUNTEERS_ADDED: 'calendario', ACTIVITY_VOLUNTEER_REMOVED: 'calendario',
-    ACTIVITY_OVERLAP_ACCEPTED: 'calendario'
+    ACTIVITY_OVERLAP_ACCEPTED: 'calendario',
+    INVENTORY_MOVEMENT_CREATED: 'inventario', INVENTORY_MOVEMENT_REVERSED: 'inventario'
   };
 
   const ENTITY_LABEL = { users: 'Usuario', volunteers: 'Voluntario', schools: 'Escuela', tutors: 'Tutor', children: 'Niña o niño',
-    events: 'Evento', letters: 'Carta', activities: 'Actividad' };
+    events: 'Evento', letters: 'Carta', activities: 'Actividad',
+    inventory_items: 'Artículo de inventario', inventory_categories: 'Categoría de inventario', collection_centers: 'Centro de acopio',
+    inventory_movements: 'Movimientos de inventario' };
   const ENTITY_PLURAL = { volunteers: 'voluntarios', schools: 'escuelas', tutors: 'tutores', children: 'niñas y niños',
-    events: 'eventos', letters: 'cartas', activities: 'actividades' };
+    events: 'eventos', letters: 'cartas', activities: 'actividades',
+    inventory_items: 'existencias de inventario', inventory_movements: 'movimientos de inventario' };
   // Vista del detalle de cada entidad (para enlazar "Sobre" en la bitácora)
   const ENTITY_VIEW = { users: 'usuario', volunteers: 'voluntario', children: 'nino', schools: 'escuelas', tutors: 'tutores',
-    events: 'evento', letters: 'carta', activities: 'actividad' };
-  // Escuelas y tutores no tienen página de detalle: se abre su listado con el registro resaltado
+    events: 'evento', letters: 'carta', activities: 'actividad', inventory_items: 'articulo',
+    inventory_categories: 'inventario-catalogos', collection_centers: 'inventario-catalogos' };
+  const CATALOG_TAB = { inventory_categories: 'categorias', collection_centers: 'centros' };
+  // Escuelas, tutores y catálogos de inventario no tienen página de detalle: se abre su listado con el registro resaltado
   const entityHref = (entity, id) => {
     if (!ENTITY_VIEW[entity] || !id) return null;
     if (entity === 'schools' || entity === 'tutors') return `#${ENTITY_VIEW[entity]}?ver=${id}`;
+    if (CATALOG_TAB[entity]) return `#${ENTITY_VIEW[entity]}?tab=${CATALOG_TAB[entity]}&ver=${id}`;
     return `#${ENTITY_VIEW[entity]}/${id}`;
   };
 
@@ -100,7 +111,13 @@ const Audit = (() => {
     max_letters_per_sponsor: 'límite por padrino', main_wish: 'deseo principal', secondary_wish: 'deseo secundario',
     letter_text: 'transcripción', gift_notes: 'notas del regalo', area: 'área', status: 'estatus',
     title: 'título', activity_type: 'tipo', activity_date: 'fecha', start_time: 'hora de inicio', end_time: 'hora de fin',
-    responsible_user_id: 'responsable', event_id: 'evento'
+    responsible_user_id: 'responsable', event_id: 'evento',
+    category_id: 'categoría', unit: 'unidad', min_stock: 'existencia mínima'
+  };
+  const MOVEMENT_REASON_LABEL = {
+    DONACION: 'Donación', COMPRA: 'Compra', DEVOLUCION: 'Devolución', USO_EVENTO: 'Uso en evento',
+    ENTREGA: 'Entrega a beneficiarios', MERMA: 'Merma o daño', AJUSTE: 'Ajuste por conteo', OTRO: 'Otro',
+    TRASPASO: 'Traspaso entre centros', ANULACION: 'Anulación'
   };
 
   // Estatus de eventos y cartas (espejo de lib/catalogs.js; los usa el texto de la bitácora)
@@ -176,6 +193,15 @@ const Audit = (() => {
         const ids = d.with || [];
         return ids.length ? `Se cruza con ${ids.length === 1 ? 'la actividad' : 'las actividades'} ${ids.map((i) => `#${i}`).join(', ')}` : '';
       }
+      case 'INVENTORY_MOVEMENT_CREATED': {
+        const what = d.type === 'TRASPASO' ? `Traspaso del centro #${d.center_id} al #${d.to_center_id}`
+          : `${d.type === 'SALIDA' ? 'Salida' : 'Entrada'} · ${MOVEMENT_REASON_LABEL[d.reason] || d.reason || ''} · centro #${d.center_id}`;
+        return `${what} · ${d.quantity ?? ''} ${d.quantity === 1 ? 'unidad' : 'unidades'}`;
+      }
+      case 'INVENTORY_MOVEMENT_REVERSED': {
+        const ids = d.reversed_ids || [];
+        return ids.length ? `Anuló ${ids.length === 1 ? 'el movimiento' : 'los movimientos'} ${ids.map((i) => `#${i}`).join(', ')}` : '';
+      }
       case 'DATA_EXPORTED': {
         const what = ENTITY_PLURAL[log.entity] || log.entity;
         const filters = Object.keys(d.filters || {}).length ? ' (con filtros)' : '';
@@ -188,7 +214,7 @@ const Audit = (() => {
 
   return {
     AUDIT_ACTIONS, AUDIT_ACTION_LABEL, AUDIT_ACTION_GROUP, GROUPS, ENTITY_LABEL, ENTITY_PLURAL, ENTITY_VIEW, FIELD_LABEL,
-    EVENT_STATUS_LABEL, LETTER_STATUS_LABEL, PARTICIPATION_STATUS_LABEL, ACTIVITY_STATUS_LABEL,
+    EVENT_STATUS_LABEL, LETTER_STATUS_LABEL, PARTICIPATION_STATUS_LABEL, ACTIVITY_STATUS_LABEL, MOVEMENT_REASON_LABEL,
     auditActionLabel, describeAuditDetail, entityHref
   };
 })();

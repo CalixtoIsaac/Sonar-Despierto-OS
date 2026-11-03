@@ -59,6 +59,21 @@ const Inicio = (() => {
     } catch { /* el resumen no es crítico */ }
   }
 
+  /** Aviso de existencias bajas si tiene el Inventario. */
+  async function showLowStock(container) {
+    const slot = container.querySelector('#lowStockSlot');
+    try {
+      const s = await UI.api('/inventory/summary');
+      if (!s.low_stock || !slot.isConnected) return;
+      slot.innerHTML = `
+        <section class="card panel callout section-gap" role="status">
+          <span class="callout-icon">${UI.icon('boxes')}</span>
+          <p><strong>${s.low_stock}</strong> ${s.low_stock === 1 ? 'artículo está' : 'artículos están'} por debajo de su existencia mínima.</p>
+          <a class="btn btn-outline" href="#inventario?existencia=bajo">Ver inventario</a>
+        </section>`;
+    } catch { /* el aviso no es crítico */ }
+  }
+
   function mount(container, { user }) {
     const items = Access.visibleMenu(user).filter((v) => v.module || v.adminOnly);
     container.innerHTML = `
@@ -79,9 +94,11 @@ const Inicio = (() => {
                <p class="muted">Pide al administrador que te habilite los que necesites.</p>
              </div>`}
       </section>
-      <div id="upcomingSlot"></div>`;
+      <div id="upcomingSlot"></div>
+      <div id="lowStockSlot"></div>`;
     if (user.role === 'ADMIN') showPending(container);
     if (Access.canSee(user, Access.viewByKey('calendario'))) showUpcoming(container);
+    if (Access.canSee(user, Access.viewByKey('inventario'))) showLowStock(container);
   }
 
   return { mount };

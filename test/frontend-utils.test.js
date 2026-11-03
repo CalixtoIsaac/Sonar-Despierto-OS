@@ -47,7 +47,7 @@ test('Access: estados de cuenta, módulos sensibles, menú y hash', () => {
   const admin = Access.visibleMenu({ role: 'ADMIN', modules: [] }).map((v) => v.key);
   assert.ok(!admin.includes('usuario'), 'las vistas ocultas no aparecen en el menú');
   assert.equal(admin.indexOf('bitacora'), admin.indexOf('usuarios') + 1, 'Bitácora va después de Usuarios');
-  assert.equal(admin.length, 14);
+  assert.equal(admin.length, 16); // + Movimientos y Centros y categorías (F6)
   assert.deepEqual(Access.parseHash('#usuario/7?x=1'), { key: 'usuario', id: '7', params: { x: '1' } });
   assert.deepEqual(Access.parseHash('#'), { key: 'inicio', id: null, params: {} });
   assert.equal(Access.buildHash('usuarios', null, { tab: 'solicitudes', q: '', page: 2 }), '#usuarios?tab=solicitudes&page=2');
@@ -254,4 +254,39 @@ test('F5: Audit — textos del calendario y enlace a la actividad', () => {
   assert.equal(d('RECORD_UPDATED', { changed: ['activity_date', 'start_time', 'responsible_user_id'] }), 'Campos: fecha, hora de inicio, responsable');
   assert.equal(Audit.entityHref('activities', 9), '#actividad/9');
   assert.equal(Audit.AUDIT_ACTION_GROUP.ACTIVITY_OVERLAP_ACCEPTED, 'calendario');
+});
+
+test('F6: catálogos de inventario = lib/catalogs.js; vistas protegidas por INVENTARIO; textos de la bitácora', () => {
+  const Catalogos = require('../public/js/catalogos');
+  const cat = require('../lib/catalogs');
+  assert.deepEqual(Catalogos.INVENTORY_UNITS, [...cat.INVENTORY_UNITS]);
+  assert.deepEqual(Catalogos.INVENTORY_UNIT_LABEL, { ...cat.INVENTORY_UNIT_LABELS });
+  assert.deepEqual(Object.keys(Catalogos.INVENTORY_UNIT_PLURAL), [...cat.INVENTORY_UNITS]);
+  assert.deepEqual(Catalogos.ENTRY_REASONS, [...cat.ENTRY_REASONS]);
+  assert.deepEqual(Catalogos.EXIT_REASONS, [...cat.EXIT_REASONS]);
+  assert.deepEqual(Catalogos.MOVEMENT_REASON_LABEL, { ...cat.MOVEMENT_REASON_LABELS });
+  assert.deepEqual(Audit.MOVEMENT_REASON_LABEL, { ...cat.MOVEMENT_REASON_LABELS });
+  assert.equal(Catalogos.INVENTORY_MAX_QUANTITY, cat.INVENTORY_MAX_QUANTITY);
+  assert.equal(Catalogos.INVENTORY_MAX_LINES, cat.INVENTORY_MAX_LINES);
+
+  const invOnly = { role: 'OPERADOR', modules: ['INVENTARIO'] };
+  for (const key of ['inventario', 'articulo', 'movimientos', 'inventario-catalogos']) {
+    const view = Access.viewByKey(key);
+    assert.equal(view.module, 'INVENTARIO', key);
+    assert.ok(view.ready, key);
+    assert.ok(Access.canSee(invOnly, view), key);
+    assert.equal(Access.canSee({ role: 'OPERADOR', modules: ['CARTAS'] }, view), false, key);
+  }
+  assert.deepEqual(Access.visibleMenu(invOnly).map((v) => v.key), ['inicio', 'inventario', 'movimientos', 'inventario-catalogos', 'perfil']);
+
+  const d = (action, detail, entity = 'inventory_items') => Audit.describeAuditDetail({ action, detail, entity });
+  assert.equal(d('INVENTORY_MOVEMENT_CREATED', { type: 'SALIDA', reason: 'MERMA', quantity: 3, center_id: 2 }),
+    'Salida · Merma o daño · centro #2 · 3 unidades');
+  assert.equal(d('INVENTORY_MOVEMENT_CREATED', { type: 'TRASPASO', reason: 'TRASPASO', quantity: 1, center_id: 1, to_center_id: 4 }),
+    'Traspaso del centro #1 al #4 · 1 unidad');
+  assert.equal(d('INVENTORY_MOVEMENT_REVERSED', { reversed_ids: [5, 6] }), 'Anuló los movimientos #5, #6');
+  assert.equal(d('DATA_EXPORTED', { count: 4, filters: {} }), '4 existencias de inventario en CSV');
+  assert.equal(Audit.entityHref('inventory_items', 9), '#articulo/9');
+  assert.equal(Audit.entityHref('collection_centers', 2), '#inventario-catalogos?tab=centros&ver=2');
+  assert.equal(Audit.entityHref('inventory_categories', 3), '#inventario-catalogos?tab=categorias&ver=3');
 });

@@ -4,7 +4,9 @@
  *
  *   const lista = Listado.mount(container, ctx, {
  *     title, description, actions: [{ label, icon, primary, href, onClick, id }],
- *     filters: [{ name: 'q', type: 'search', label, placeholder } | { name, type: 'select', label, options }],
+ *     filters: [{ name: 'q', type: 'search', label, placeholder } | { name, type: 'select', label, options }
+ *               | { name, type: 'date', label, max }],
+ *     (sin title: solo se pintan las acciones, para listados dentro de una vista con pestañas)
  *     endpoint: '/children', query: (params) => ({ … }), itemLabel: 'niñas y niños',
  *     columns: [{ label, render: (item) => html, className }], card: (item) => html,
  *     empty: (hasFilters) => ({ iconName, title, text, actionHtml }),
@@ -31,7 +33,7 @@ const Listado = (() => {
 
     container.innerHTML = `
       <section class="page-header">
-        <div><h2>${esc(config.title)}</h2>${config.description ? `<p class="muted">${esc(config.description)}</p>` : ''}</div>
+        <div>${config.title ? `<h2>${esc(config.title)}</h2>` : ''}${config.description ? `<p class="muted">${esc(config.description)}</p>` : ''}</div>
         <div class="header-actions" data-actions></div>
       </section>
       <div data-top></div>
@@ -71,6 +73,9 @@ const Listado = (() => {
           parts.push(`<label class="filter filter-search"><span class="filter-label">${esc(f.label || 'Buscar')}</span>
             <span class="search">${UI.icon('search')}<input class="input" type="search" name="${f.name}"
               value="${esc(params[f.name] || '')}" placeholder="${esc(f.placeholder || '')}" autocomplete="off"></span></label>`);
+        } else if (f.type === 'date') {
+          parts.push(`<label class="filter filter-date"><span class="filter-label">${esc(f.label)}</span>
+            <input class="input" type="date" name="${f.name}" value="${esc(params[f.name] || '')}"${f.max ? ` max="${esc(f.max)}"` : ''}></label>`);
         } else {
           const opts = typeof f.options === 'function' ? [['', f.loadingLabel || 'Cargando…']] : f.options;
           parts.push(selectHtml(f, params[f.name], opts));

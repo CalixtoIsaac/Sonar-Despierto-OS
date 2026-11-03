@@ -76,6 +76,7 @@ async function smokeTest() {
     await smokePeople(json, { Authorization: `Bearer ${changed.body.token}` });
     await smokeLetters(json, { Authorization: `Bearer ${changed.body.token}` });
     await smokeCalendar(json, { Authorization: `Bearer ${changed.body.token}` }, me.body.user.id);
+    await smokeInventory(json, { Authorization: `Bearer ${changed.body.token}` });
     console.log('  PRUEBA DE HUMO OK');
   } finally {
     child.kill();
@@ -185,6 +186,31 @@ async function smokeCalendar(json, admin, adminId) {
   expect(list.status === 200 && list.body.items.length === 1, 'filtro por tipo');
   const audit = await json('/api/audit-logs?action=ACTIVITY_OVERLAP_ACCEPTED', { headers: admin });
   expect(audit.body.total === 1, 'traslape aceptado en bitácora');
+}
+
+/** Fase 6: salida mayor a la existencia → rechazada; el kardex cuadra con las existencias. */
+async function smokeInventory(json, admin) {
+  const expect = (cond, msg) => { if (!cond) throw new Error(`inventario: ${msg}`); };
+  const send = (method, url, body) => json(url, { method, headers: admin, body: JSON.stringify(body) });
+  const cats = await json('/api/inventory/categories', { headers: admin });
+  expect(cats.status === 200 && cats.body.total >= 1, 'categorías sugeridas de la migración');
+  const center = await send('POST', '/api/inventory/centers', { name: 'Centro de humo' });
+  const north = await send('POST', '/api/inventory/centers', { name: 'Bodega de humo' });
+  expect(center.status === 201 && north.status === 201, 'alta de centros');
+  const item = await send('POST', '/api/inventory/items', { name: 'Silla de humo', category_id: cats.body.items[0].id, unit: 'PIEZA' });
+  expect(item.status === 201, `alta de artículo ${item.status}`);
+  const id = item.body.item.id;
+  const line = (q) => [{ item_id: id, quantity: q }];
+  expect((await send('POST', '/api/inventory/movements', { type: 'ENTRADA', reason: 'DONACION', center_id: center.body.center.id, lines: line(10) })).status === 201, 'entrada');
+  const over = await send('POST', '/api/inventory/movements', { type: 'SALIDA', reason: 'USO_EVENTO', center_id: center.body.center.id, lines: line(11) });
+  expect(over.status === 409 && over.body.code === 'INSUFFICIENT_STOCK', 'salida mayor a la existencia → 409');
+  expect((await send('POST', '/api/inventory/movements', { type: 'TRASPASO', center_id: center.body.center.id, to_center_id: north.body.center.id, lines: line(3) })).status === 201, 'traspaso');
+  expect((await send('POST', '/api/inventory/movements', { type: 'SALIDA', reason: 'USO_EVENTO', center_id: center.body.center.id, lines: line(4) })).status === 201, 'salida');
+  const detail = await json(`/api/inventory/items/${id}`, { headers: admin });
+  const kardex = await json(`/api/inventory/items/${id}/kardex`, { headers: admin });
+  expect(detail.body.item.total_stock === 6 && kardex.body.closing_balance === 6, 'el kardex cuadra con las existencias');
+  const csv = await json('/api/inventory/items/export', { headers: admin });
+  expect(csv.status === 200 && String(csv.body).includes('Silla de humo'), 'exportación de existencias');
 }
 
 async function main() {

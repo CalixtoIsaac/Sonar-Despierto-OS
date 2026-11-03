@@ -20,6 +20,7 @@ Un ADR documenta **una** decisión técnica importante: el contexto, lo que se d
 | [0010](0010-personas-duplicados-auditoria-y-consentimiento.md) | Personas: detección de duplicados, auditoría genérica y consentimiento | Aceptado | 2026-10-29 |
 | [0011](0011-eventos-cartas-concurrencia-y-fotos.md) | Eventos y cartas: padrino voluntario, bloqueo optimista, datos restringidos y fotos privadas | Aceptado | 2026-10-30 |
 | [0012](0012-calendario-horas-locales-y-traslape.md) | Calendario: horas locales, responsable del personal y traslape como aviso | Aceptado | 2026-10-31 |
+| [0013](0013-inventario-libro-de-movimientos.md) | Inventario como libro de movimientos: existencias por centro, anulaciones y salidas sin saldo negativo | Aceptado | 2026-11-02 |
 
 Hoja de ruta aprobada: [`../Roadmap_Fases.md`](../Roadmap_Fases.md).
 

@@ -220,11 +220,49 @@ async function makeActivity(token, responsibleId, overrides = {}) {
   return r.body.activity;
 }
 
+// ---------- Fase 6: inventario ----------
+let inventoryCounter = 0;
+async function post201(token, url, body, what) {
+  const r = await request('POST', url, { token, body });
+  if (r.status !== 201) throw new Error(`${what} ${r.status}: ${r.text}`);
+  return r.body;
+}
+async function makeCategory(token, overrides = {}) {
+  return (await post201(token, '/api/inventory/categories', { name: `Categoría ${++inventoryCounter}`, ...overrides }, 'categoría')).category;
+}
+async function makeCenter(token, overrides = {}) {
+  return (await post201(token, '/api/inventory/centers', { name: `Centro ${++inventoryCounter}`, address: 'Av. Díaz Mirón 100',
+    contact_name: 'Rosa', contact_phone: '2290001122', ...overrides }, 'centro')).center;
+}
+async function makeItem(token, categoryId, overrides = {}) {
+  return (await post201(token, '/api/inventory/items', { name: `Artículo ${++inventoryCounter}`, category_id: categoryId, unit: 'PIEZA',
+    ...overrides }, 'artículo')).item;
+}
+/** Cuerpo de POST /api/inventory/movements con una línea. */
+function movementPayload(type, centerId, itemId, quantity, overrides = {}) {
+  const base = { type, center_id: centerId, lines: [{ item_id: itemId, quantity }] };
+  if (type === 'ENTRADA') base.reason = 'DONACION';
+  if (type === 'SALIDA') base.reason = 'USO_EVENTO';
+  return { ...base, ...overrides };
+}
+async function move(token, type, centerId, itemId, quantity, overrides = {}) {
+  return (await post201(token, '/api/inventory/movements', movementPayload(type, centerId, itemId, quantity, overrides), 'movimiento')).movements;
+}
+/** Sesión con INVENTARIO, una categoría, un centro y un artículo listos: { user, token, category, center, item }. */
+async function inventorySetup(modules = ['INVENTARIO']) {
+  const s = await operatorSession(modules);
+  const category = await makeCategory(s.token);
+  const center = await makeCenter(s.token);
+  const item = await makeItem(s.token, category.id);
+  return { ...s, category, center, item };
+}
+
 module.exports = {
   baseUrl: () => baseUrl,
   dataDir, start, stop, resetDb, request, makeUser, login, auditActions, auditRows,
   registerPayload, pendingUser, adminSession, operatorSession,
   schoolPayload, tutorPayload, volunteerPayload, childPayload,
   eventPayload, openEvent, makeChild, makeVolunteer, makeLetter,
-  activityPayload, makeActivity
+  activityPayload, makeActivity,
+  makeCategory, makeCenter, makeItem, movementPayload, move, inventorySetup
 };

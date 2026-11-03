@@ -35,7 +35,11 @@
     'carta-form': () => CartaForm,
     buscar: () => Buscar,
     calendario: () => Calendario,
-    actividad: () => ActividadDetalle
+    actividad: () => ActividadDetalle,
+    inventario: () => Inventario,
+    articulo: () => ArticuloDetalle,
+    movimientos: () => Movimientos,
+    'inventario-catalogos': () => InventarioCatalogos
     // Las demás vistas del menú usan Proximamente hasta que llegue su fase
   };
   const DEFAULT_VIEW = 'inicio';
