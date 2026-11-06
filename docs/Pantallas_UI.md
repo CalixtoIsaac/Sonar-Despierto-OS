@@ -35,8 +35,9 @@
 | P20 Artículo y kardex | `/app#articulo/<id>` | `INVENTARIO` | Existencia total y por centro; kardex con saldo, filtros por centro y fechas, totales, Anular y CSV |
 | P21 Movimientos | `/app#movimientos` | `INVENTARIO` | Libro de entradas, salidas, traspasos y anulaciones con filtros (tipo, motivo, centro, fechas, "Solo yo") |
 | P21b Centros y categorías | `/app#inventario-catalogos` | `INVENTARIO` | Pestañas; alta, edición y baja lógica; un centro con existencias no se da de baja |
+| P05 Reportes (dashboard, adaptada) | `/app#reportes?evento=<id>` | `REPORTES` | Selector de evento; avisos con "Ver" según permisos; indicadores con anillos de %; cartas por estatus, avance semanal, por escuela, voluntarios, actividades e inventario; comparativo de eventos; Actualizar y Exportar a Excel; se refresca cada minuto. En Inicio: "Avance de <evento>" |
 
-Componentes compartidos: `ui-kit.js` (API, diálogos, `buildQuery`, `download`), `components.js` (selector de módulos, paginación, contraseña temporal, estados, formularios con errores por campo), `listado.js` (pantallas de listado, con filtros de fecha desde la F6), `inventario-ui.js` (diálogos de movimiento y anulación), `fechas.js`, `phone.js`, `audit.js`, `catalogos.js`. Todas las pantallas tienen estados de carga, vacío y error y se probaron a 360 px en tema claro y oscuro.
+Componentes compartidos: `ui-kit.js` (API, diálogos, `buildQuery`, `download`), `components.js` (selector de módulos, paginación, contraseña temporal, estados, formularios con errores por campo), `listado.js` (pantallas de listado, con filtros de fecha desde la F6), `inventario-ui.js` (diálogos de movimiento y anulación), `reportes-ui.js` (gráficas con HTML y CSS: barra segmentada, columnas apiladas, barras y anillos), `fechas.js`, `phone.js`, `audit.js`, `catalogos.js`. Todas las pantallas tienen estados de carga, vacío y error y se probaron a 360 px en tema claro y oscuro.
 
 > **Versión:** 1.0 · **Frontend:** HTML5 + CSS3 + JavaScript Vanilla (multipágina) · **Idioma:** Español
 > **Documentos relacionados:** `API_Spec.md` (endpoints que consume cada pantalla), `Modelo_Datos.md`

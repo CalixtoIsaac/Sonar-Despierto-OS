@@ -39,7 +39,8 @@
     inventario: () => Inventario,
     articulo: () => ArticuloDetalle,
     movimientos: () => Movimientos,
-    'inventario-catalogos': () => InventarioCatalogos
+    'inventario-catalogos': () => InventarioCatalogos,
+    reportes: () => Reportes
     // Las demás vistas del menú usan Proximamente hasta que llegue su fase
   };
   const DEFAULT_VIEW = 'inicio';

@@ -1,7 +1,7 @@
 /**
  * Vista "Niños" (módulo BENEFICIARIOS — datos sensibles de menores): listado con filtros y
  * exportación a CSV (queda en la bitácora). Parámetros: q, escuela (id | none), tutor, consentimiento,
- * estado, page.
+ * estado, sin_carta (id de evento: solo quienes no tienen carta en él; llega desde Reportes), page.
  */
 const Ninos = (() => {
   const esc = (v) => UI.escape(v);
@@ -9,8 +9,25 @@ const Ninos = (() => {
   function apiQuery(p) {
     return {
       search: p.q, school_id: p.escuela, tutor_id: p.tutor, consent: p.consentimiento,
-      is_active: Catalogos.estadoToActive(p.estado), order_by: 'name'
+      is_active: Catalogos.estadoToActive(p.estado), without_letter_event_id: p.sin_carta, order_by: 'name'
     };
+  }
+
+  /** Aviso del filtro "sin carta en el evento" (viene del dashboard); el nombre del evento sale de Reportes si hay acceso. */
+  function noLetterNotice(params, el, getList) {
+    if (!params.sin_carta) { el.innerHTML = ''; return; }
+    const paint = (name) => {
+      el.innerHTML = `<section class="card panel callout" role="status">
+        <span class="callout-icon">${UI.icon('filter')}</span>
+        <p>Solo niñas y niños <strong>sin carta</strong> en ${esc(name)}.</p>
+        <button type="button" class="btn btn-outline btn-sm" data-clear-noletter>${UI.icon('x')}Quitar filtro</button></section>`;
+      el.querySelector('[data-clear-noletter]').addEventListener('click', () => getList().setParams({ sin_carta: null, page: null }));
+    };
+    paint('el evento seleccionado');
+    UI.api('/reports/options').then(({ events }) => {
+      const ev = events.find((e) => String(e.id) === String(params.sin_carta));
+      if (ev && el.isConnected) paint(ev.name);
+    }).catch(() => { /* sin Reportes: se queda el texto genérico */ });
   }
 
   const consentBadge = (c) => (c.guardian_consent
@@ -44,6 +61,7 @@ const Ninos = (() => {
         { name: 'consentimiento', type: 'select', label: 'Consentimiento', options: [['', 'Todos'], ['true', 'Con consentimiento'], ['false', 'Sin consentimiento']] },
         { name: 'estado', type: 'select', label: 'Estado', options: Catalogos.ESTADO_OPTIONS }
       ],
+      top: (params, el) => noLetterNotice(params, el, () => list),
       endpoint: '/children',
       query: apiQuery,
       itemLabel: 'niñas y niños',

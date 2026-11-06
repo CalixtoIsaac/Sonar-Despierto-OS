@@ -16,6 +16,7 @@
 | 4 (F4) | `events`, `event_volunteers`, `letters`, `letter_status_history` (+ disparador de solo inserción) |
 | 5 (F5) | `activities`, `activity_volunteers` |
 | 6 (F6) | `inventory_categories` (+ 6 categorías sugeridas), `collection_centers`, `inventory_items`, `inventory_movements` (+ disparadores: sin `UPDATE` y sin existencia negativa) |
+| — (F7) | Sin migración: el dashboard calcula sus cifras de las tablas anteriores (ADR-0014) |
 
 ### 0.1 `users` — cuentas del personal (F1 + F2)
 

@@ -116,4 +116,8 @@ docs/       requerimientos, modelo de datos, API, pantallas, ADR y fases
 - **Fase 6 — Inventario:** ✅ (2026-11-02). Categorías y centros de acopio editables, artículos, entradas, salidas y
   traspasos de varios artículos a la vez, existencias calculadas por centro, anulaciones, kardex con saldos y CSV; una
   salida mayor a la existencia se rechaza (`409 INSUFFICIENT_STOCK`) ([contratos](docs/fases/Fase_6_Contratos.md), ADR-0013).
-- **Siguiente:** Fase 7 — Dashboard y reportes. Fases 7–8: ver la [hoja de ruta](docs/Roadmap_Fases.md).
+- **Fase 7 — Dashboard y reportes:** ✅ (2026-11-05). Indicadores por evento (cartas por estatus, % con padrino,
+  recibidos y entregados, niñas y niños sin carta o sin consentimiento, voluntarios, escuelas, actividades e inventario),
+  avisos con enlace a listados filtrados, gráficas de avance semanal y por escuela, comparativo de eventos y exportación a
+  Excel auditada; las cifras coinciden con consultas SQL de control ([contratos](docs/fases/Fase_7_Contratos.md), ADR-0014).
+- **Siguiente:** Fase 8 — Empaquetado y entrega: ver la [hoja de ruta](docs/Roadmap_Fases.md).

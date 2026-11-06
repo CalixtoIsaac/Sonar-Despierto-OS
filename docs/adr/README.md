@@ -21,6 +21,7 @@ Un ADR documenta **una** decisión técnica importante: el contexto, lo que se d
 | [0011](0011-eventos-cartas-concurrencia-y-fotos.md) | Eventos y cartas: padrino voluntario, bloqueo optimista, datos restringidos y fotos privadas | Aceptado | 2026-10-30 |
 | [0012](0012-calendario-horas-locales-y-traslape.md) | Calendario: horas locales, responsable del personal y traslape como aviso | Aceptado | 2026-10-31 |
 | [0013](0013-inventario-libro-de-movimientos.md) | Inventario como libro de movimientos: existencias por centro, anulaciones y salidas sin saldo negativo | Aceptado | 2026-11-02 |
+| [0014](0014-dashboard-conteos-al-momento-y-excel.md) | Dashboard con conteos calculados al momento, sin datos personales y Excel sin dependencias | Aceptado | 2026-11-05 |
 
 Hoja de ruta aprobada: [`../Roadmap_Fases.md`](../Roadmap_Fases.md).
 

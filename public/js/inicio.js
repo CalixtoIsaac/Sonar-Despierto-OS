@@ -74,6 +74,23 @@ const Inicio = (() => {
     } catch { /* el aviso no es crítico */ }
   }
 
+  /** Avance de las cartas del evento sugerido si tiene Reportes (Fase 7). */
+  async function showReportSnapshot(container) {
+    const slot = container.querySelector('#reportSlot');
+    try {
+      const d = await UI.api('/reports/dashboard');
+      if (!slot.isConnected || !d.event || !d.event.accepts_letters || !d.letters.total) return;
+      const L = d.letters;
+      slot.innerHTML = `<section class="card panel section-gap rep-snapshot">
+        <div class="panel-head"><h3 class="panel-title">Avance de ${UI.escape(d.event.name)}</h3>
+          <a class="btn btn-outline btn-sm" href="#reportes?evento=${d.event.id}">${UI.icon('chart')}Ver reportes</a></div>
+        <p class="muted" style="margin-bottom:12px"><strong>${ReportesUI.pctText(L.with_sponsor_pct)}</strong> de las ${ReportesUI.num(L.total)} cartas tiene padrino
+          · <strong>${ReportesUI.num(L.by_status.ENTREGADO)}</strong> ${L.by_status.ENTREGADO === 1 ? 'regalo entregado' : 'regalos entregados'}</p>
+        ${ReportesUI.statusBar(L.by_status, L.total)}
+      </section>`;
+    } catch { /* el resumen no es crítico */ }
+  }
+
   function mount(container, { user }) {
     const items = Access.visibleMenu(user).filter((v) => v.module || v.adminOnly);
     container.innerHTML = `
@@ -94,11 +111,13 @@ const Inicio = (() => {
                <p class="muted">Pide al administrador que te habilite los que necesites.</p>
              </div>`}
       </section>
+      <div id="reportSlot"></div>
       <div id="upcomingSlot"></div>
       <div id="lowStockSlot"></div>`;
     if (user.role === 'ADMIN') showPending(container);
     if (Access.canSee(user, Access.viewByKey('calendario'))) showUpcoming(container);
     if (Access.canSee(user, Access.viewByKey('inventario'))) showLowStock(container);
+    if (Access.canSee(user, Access.viewByKey('reportes'))) showReportSnapshot(container);
   }
 
   return { mount };
