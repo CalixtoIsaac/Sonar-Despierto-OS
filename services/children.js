@@ -130,7 +130,7 @@ function updateChild(actor, id, data, ip, db = getDb()) {
   return getChild(existing.id, db);
 }
 
-function filterClause({ search, schoolId, tutorId, gender, consent, isActive } = {}) {
+function filterClause({ search, schoolId, tutorId, gender, consent, isActive, withoutLetterEventId } = {}) {
   const where = [];
   const params = {};
   const s = R.searchClause(search, ['c.name_key']);
@@ -140,6 +140,10 @@ function filterClause({ search, schoolId, tutorId, gender, consent, isActive } =
   if (tutorId) { where.push('c.tutor_id = @tutor'); params.tutor = tutorId; }
   if (gender) { where.push('c.gender = @gender'); params.gender = gender; }
   if (consent !== undefined && consent !== null) { where.push('c.guardian_consent = @consent'); params.consent = consent ? 1 : 0; }
+  if (withoutLetterEventId) { // Fase 7: enlace "sin carta en este evento" del dashboard
+    where.push('NOT EXISTS (SELECT 1 FROM letters l WHERE l.child_id = c.id AND l.event_id = @noLetterEvent)');
+    params.noLetterEvent = withoutLetterEventId;
+  }
   R.activeClause('c', isActive, where, params);
   return { where: where.join(' AND '), params };
 }
@@ -185,7 +189,7 @@ function exportChildren(actor, filters, ip, db = getDb()) {
   const rows = db.prepare(`SELECT ${SELECT} FROM ${FROM}${where ? ` WHERE ${where}` : ''} ORDER BY ${ORDER.name} LIMIT ${EXPORT_LIMIT}`).all(params);
   R.recordExport({ entity: TABLE, count: rows.length, actor, ip, filters: {
     search: filters.search, school_id: filters.schoolId, tutor_id: filters.tutorId, gender: filters.gender,
-    consent: filters.consent, is_active: filters.isActive
+    consent: filters.consent, is_active: filters.isActive, without_letter_event_id: filters.withoutLetterEventId
   } }, db);
   return { csv: toCsv(CSV_COLUMNS, rows), count: rows.length };
 }

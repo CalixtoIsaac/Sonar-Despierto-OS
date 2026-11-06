@@ -1,6 +1,6 @@
 # Especificación de API (MVP) — Soñar Despierto
 
-> ✅ **Actualizado en las Fases 2 y 3 (2026-10-29; ADR-0004, ADR-0007, ADR-0008, ADR-0009, ADR-0010):** las secciones §3.1–§3.5 de este documento describen los **endpoints vigentes** de autenticación, auto-registro, usuarios, bitácora y personas (voluntarios, escuelas, tutores y niños). Contratos completos: [`fases/Fase_2_Prompts_Task_Document.md`](fases/Fase_2_Prompts_Task_Document.md) §3 y [`fases/Fase_3_Contratos.md`](fases/Fase_3_Contratos.md). **Fase 4 (2026-10-30, ADR-0011):** los endpoints vigentes de eventos y cartas están en [`fases/Fase_4_Contratos.md`](fases/Fase_4_Contratos.md) §4 y resumidos en §3.6–§3.7 abajo; el detalle original de esas secciones queda como referencia histórica. **Fase 5 (2026-10-31, ADR-0012):** el calendario de actividades está en §3.10 abajo y completo en [`fases/Fase_5_Contratos.md`](fases/Fase_5_Contratos.md) §4. El dashboard (§3.8) se actualizará en la Fase 7.
+> ✅ **Actualizado en las Fases 2 y 3 (2026-10-29; ADR-0004, ADR-0007, ADR-0008, ADR-0009, ADR-0010):** las secciones §3.1–§3.5 de este documento describen los **endpoints vigentes** de autenticación, auto-registro, usuarios, bitácora y personas (voluntarios, escuelas, tutores y niños). Contratos completos: [`fases/Fase_2_Prompts_Task_Document.md`](fases/Fase_2_Prompts_Task_Document.md) §3 y [`fases/Fase_3_Contratos.md`](fases/Fase_3_Contratos.md). **Fase 4 (2026-10-30, ADR-0011):** los endpoints vigentes de eventos y cartas están en [`fases/Fase_4_Contratos.md`](fases/Fase_4_Contratos.md) §4 y resumidos en §3.6–§3.7 abajo; el detalle original de esas secciones queda como referencia histórica. **Fase 5 (2026-10-31, ADR-0012):** el calendario de actividades está en §3.10 abajo y completo en [`fases/Fase_5_Contratos.md`](fases/Fase_5_Contratos.md) §4. **Fase 7 (2026-11-05, ADR-0014):** el dashboard y la exportación a Excel están en §3.8 abajo y completos en [`fases/Fase_7_Contratos.md`](fases/Fase_7_Contratos.md) §3.
 
 > 🔄 **Actualización 2026-10-23 (ADR-0009):** el backend es **Node.js + Express** (mismo stack que SEMA y My Best DataBase). Cambios de forma, no de reglas: **base URL `/api`** (antes `/api/v1`); **un solo token** de sesión de 8 h en `token` (sin `refresh_token` ni `POST /auth/refresh`); formato de error **plano** `{ "error": "mensaje", "code": "CODIGO", "details": [...] }` (los códigos y mensajes no cambian); no hay Swagger: esta especificación es la documentación de referencia. Endpoints vigentes de la Fase 1: `POST /api/auth/login` → `{ token, expires_in, user }`, `POST /api/auth/logout` → `204`, `GET /api/auth/me` → `{ user }`, `POST /api/auth/change-password` → `{ token, expires_in, user }`, `GET /api/health`, `GET /api/health/db`. Los esquemas JSON siguen en `snake_case`.
 
@@ -135,7 +135,7 @@ Respuesta paginada:
 | 44 | GET | `/letters/{id}/history` | A |
 | 45 | GET | `/letters/by-code/{code}` | A |
 | **Dashboard** ||||
-| 46 | GET | `/dashboard/summary` | 🔑 (contenido según rol) |
+| 46 | GET | `/reports/options` · `/reports/dashboard` · `/reports/events` · `/reports/dashboard/export` | `REPORTES` (F7) |
 
 `V*` = el voluntario solo ve la **vista restringida** de cartas que están disponibles o que él adoptó.
 
@@ -378,25 +378,18 @@ El traslape es un aviso: reenviar con `allow_overlap: true` guarda la actividad.
 
 Las existencias se calculan de los movimientos; los movimientos no se editan: se anulan. Contratos completos: [`fases/Fase_6_Contratos.md`](fases/Fase_6_Contratos.md).
 
-### 3.8 Dashboard
+### 3.8 Dashboard y reportes (vigente desde la F7, ADR-0014)
 
-#### 46. `GET /dashboard/summary?event_id=1` — 🔑
-Respuesta según rol:
+Base `/api/reports`, módulo `REPORTES`. Solo conteos (sin datos de personas); se calculan al momento.
 
-**ADMIN**
-```json
-{
-  "event": { "id": 1, "name": "Navidad 2026" },
-  "letters": { "total": 420, "PENDIENTE": 120, "ASIGNADO": 200, "RECIBIDO": 80, "ENTREGADO": 20, "assigned_pct": 71.4 },
-  "volunteers": { "registered": 310, "applied_to_event": 150, "confirmed": 110 },
-  "children": { "total": 450, "without_letter": 30, "without_consent": 12 },
-  "schools": 14
-}
-```
-**TUTOR**: `{ "my_children": 35, "letters": { "total": 33, "PENDIENTE": 10, ... }, "without_letter": 2 }`
-**VOLUNTARIO**: `{ "my_letters": { "used": 2, "max": 3, "items_by_status": {...} }, "my_events": [...], "available_letters": 120 }`
+| Método y ruta | Respuesta | Errores |
+|---|---|---|
+| `GET /api/reports/options` | `{ events: [{ id, name, event_type, code_prefix, status, event_date, accepts_letters }], default_event_id }` | `401`, `403` |
+| `GET /api/reports/dashboard?event_id` | `{ generated_at, today, event, letters, children, volunteers, schools, by_school, timeline, activities, inventory, global, alerts }` (sin `event_id`: el evento sugerido) | `422`, `404` |
+| `GET /api/reports/events` | `{ items: [{ …evento, letters_total, letters_by_status, with_sponsor_pct, delivered_pct, volunteers_confirmed, activities }] }` | |
+| `GET /api/reports/dashboard/export?event_id` | `.xlsx` (8 hojas; 5 si el evento no es de Navidad), auditado `DATA_EXPORTED` | `404`, `422` |
 
-> El MVP solo necesita estos contadores; las gráficas en tiempo real son Fase 2.
+También: `GET /api/children?without_letter_event_id=<id>` (niñas y niños sin carta en ese evento). Definiciones de cada indicador: [`fases/Fase_7_Contratos.md`](fases/Fase_7_Contratos.md) §2. El diseño original por rol (TUTOR, VOLUNTARIO) queda para la fase de nube.
 
 ---
 

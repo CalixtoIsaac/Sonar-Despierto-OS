@@ -146,6 +146,22 @@ regalos de las cartas se siguen en Cartas.
   saldo después de cada uno. Se puede exportar a Excel (CSV).
 
 
+LOS REPORTES
+------------
+Menú Reportes (quien tenga el módulo Reportes). Muestra los números
+de un evento con lo registrado en ese momento; se actualiza solo
+cada minuto o con el botón "Actualizar".
+- Arriba elige el evento. Sale primero el evento abierto más próximo.
+- "Pendientes" avisa, por ejemplo, cuántas niñas y niños aún no
+  tienen carta o cuántos regalos no han llegado. El botón "Ver"
+  abre la lista ya filtrada (solo si tienes ese módulo).
+- Cartas por estatus, avance de cada semana, cartas por escuela,
+  voluntarios por área y tallas, actividades e inventario usado.
+- "Exportar a Excel" descarga un archivo con una hoja por tema.
+  Solo trae cantidades, no nombres. Queda en la bitácora.
+- En Inicio aparece el "Avance" del evento.
+
+
 LA BITÁCORA
 -----------
 Menú Bitácora (solo administradores): registra quién entró, quién

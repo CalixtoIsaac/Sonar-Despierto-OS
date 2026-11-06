@@ -77,6 +77,7 @@ async function smokeTest() {
     await smokeLetters(json, { Authorization: `Bearer ${changed.body.token}` });
     await smokeCalendar(json, { Authorization: `Bearer ${changed.body.token}` }, me.body.user.id);
     await smokeInventory(json, { Authorization: `Bearer ${changed.body.token}` });
+    await smokeReports(json, base, { Authorization: `Bearer ${changed.body.token}` });
     console.log('  PRUEBA DE HUMO OK');
   } finally {
     child.kill();
@@ -211,6 +212,24 @@ async function smokeInventory(json, admin) {
   expect(detail.body.item.total_stock === 6 && kardex.body.closing_balance === 6, 'el kardex cuadra con las existencias');
   const csv = await json('/api/inventory/items/export', { headers: admin });
   expect(csv.status === 200 && String(csv.body).includes('Silla de humo'), 'exportación de existencias');
+}
+
+/** Fase 7: las cifras del dashboard coinciden con los módulos; exportación a Excel auditada. */
+async function smokeReports(json, base, admin) {
+  const expect = (cond, msg) => { if (!cond) throw new Error(`reportes: ${msg}`); };
+  const opts = await json('/api/reports/options', { headers: admin });
+  expect(opts.status === 200 && opts.body.default_event_id, 'evento sugerido');
+  const ev = opts.body.events.find((e) => e.code_prefix === 'HUMO');
+  const d = await json(`/api/reports/dashboard?event_id=${ev.id}`, { headers: admin });
+  const summary = await json(`/api/letters/summary?event_id=${ev.id}`, { headers: admin });
+  expect(d.status === 200 && d.body.letters.total === summary.body.total, 'total de cartas = Cartas');
+  expect(JSON.stringify(d.body.letters.by_status) === JSON.stringify(summary.body.by_status), 'cartas por estatus = Cartas');
+  expect(d.body.letters.with_sponsor === 1 && d.body.timeline.length >= 1, 'carta con padrino y avance semanal');
+  const res = await fetch(`${base}/api/reports/dashboard/export?event_id=${ev.id}`, { headers: admin });
+  const buf = Buffer.from(await res.arrayBuffer());
+  expect(res.status === 200 && buf.subarray(0, 2).toString() === 'PK', 'exportación a Excel');
+  const audit = await json('/api/audit-logs?action=DATA_EXPORTED&entity=events', { headers: admin });
+  expect(audit.body.total === 1, 'exportación en bitácora');
 }
 
 async function main() {

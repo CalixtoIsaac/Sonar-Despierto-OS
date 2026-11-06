@@ -203,6 +203,9 @@ const Audit = (() => {
         return ids.length ? `Anuló ${ids.length === 1 ? 'el movimiento' : 'los movimientos'} ${ids.map((i) => `#${i}`).join(', ')}` : '';
       }
       case 'DATA_EXPORTED': {
+        if (d.format === 'xlsx') {
+          return `Reporte del evento en Excel · ${d.sheets ?? 0} ${d.sheets === 1 ? 'hoja' : 'hojas'} · ${d.count ?? 0} ${d.count === 1 ? 'carta' : 'cartas'}`;
+        }
         const what = ENTITY_PLURAL[log.entity] || log.entity;
         const filters = Object.keys(d.filters || {}).length ? ' (con filtros)' : '';
         return `${d.count ?? 0} ${what} en CSV${filters}`;

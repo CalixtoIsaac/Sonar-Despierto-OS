@@ -2,7 +2,8 @@
  * /api/children — niñas y niños beneficiarios (módulo BENEFICIARIOS; se monta con requireModule).
  * Datos sensibles de menores: solo con el permiso BENEFICIARIOS (o ADMIN).
  *
- *   GET   /api/children          ?page&page_size&search&school_id(id|none)&tutor_id&gender&consent&is_active&order_by
+ *   GET   /api/children          ?page&page_size&search&school_id(id|none)&tutor_id&gender&consent&is_active
+ *                                  &without_letter_event_id (sin carta en ese evento, F7)&order_by
  *   GET   /api/children/export   (mismos filtros) → text/csv (registra DATA_EXPORTED)
  *   POST  /api/children          ChildCreate → 201 { child }   (409 DUPLICATE_CHILD con existing_id)
  *   GET   /api/children/:id      → { child }
@@ -49,6 +50,7 @@ function filters(query) {
     tutorId: H.idQuery(query.tutor_id, 'tutor_id', c),
     gender: H.enumQuery(query.gender, 'gender', GENDERS, c),
     consent: H.boolQuery(query.consent, 'consent', c),
+    withoutLetterEventId: H.idQuery(query.without_letter_event_id, 'without_letter_event_id', c),
     isActive: H.boolQuery(query.is_active, 'is_active', c),
     orderBy: H.orderQuery(query.order_by, ['name', '-name', 'created_at', '-created_at', 'birth_date', '-birth_date'], 'name', c)
   };

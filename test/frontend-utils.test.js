@@ -290,3 +290,40 @@ test('F6: catálogos de inventario = lib/catalogs.js; vistas protegidas por INVE
   assert.equal(Audit.entityHref('collection_centers', 2), '#inventario-catalogos?tab=centros&ver=2');
   assert.equal(Audit.entityHref('inventory_categories', 3), '#inventario-catalogos?tab=categorias&ver=3');
 });
+
+// ---------- Fase 7: dashboard ----------
+test('ReportesUI: porcentajes, fechas cortas y gráficas con texto (el color no es la única señal)', () => {
+  const G = require('../public/js/reportes-ui');
+  assert.equal(G.pctText(71.4), '71.4 %');
+  assert.equal(G.pctText(100.0), '100 %');
+  assert.equal(G.pctText(null), '—');
+  assert.equal(G.shortDate('2026-11-02'), '2 nov');
+  assert.equal(G.weekLabel({ week_start: '2026-10-26', week_end: '2026-11-01' }), '26 oct – 1 nov');
+  assert.equal(G.num(12345), '12,345');
+
+  const bar = G.statusBar({ PENDIENTE: 1, ASIGNADO: 2, RECIBIDO: 0, ENTREGADO: 1 }, 4);
+  assert.match(bar, /role="img" aria-label="Cartas por estatus\. Pendiente: 1, Con padrino: 2, Regalo recibido: 0, Entregado: 1\."/);
+  assert.match(bar, /width:50\.000%/);
+  assert.doesNotMatch(bar, /rep-seg rep-recibido/, 'un estatus en 0 no dibuja segmento');
+  assert.match(bar, /Regalo recibido <strong>0<\/strong>/, 'pero sí aparece en la leyenda');
+  assert.match(G.statusBar({ PENDIENTE: 0, ASIGNADO: 0, RECIBIDO: 0, ENTREGADO: 0 }, 0), /Aún no hay cartas/);
+
+  const cols = G.weeklyColumns([{ week_start: '2026-10-26', week_end: '2026-11-01', total: 2, by_status: { PENDIENTE: 1, ASIGNADO: 1, RECIBIDO: 0, ENTREGADO: 0 } },
+    { week_start: '2026-11-02', week_end: '2026-11-08', total: 4, by_status: { PENDIENTE: 1, ASIGNADO: 1, RECIBIDO: 1, ENTREGADO: 1 } }]);
+  assert.match(cols, /height:50\.000%/, 'la primera semana mide la mitad de la más alta');
+  assert.match(cols, /Semana del 2 nov – 8 nov: Pendiente 1, Con padrino 1, Regalo recibido 1, Entregado 1\./);
+  assert.match(G.barList([['Logística', 2], ['Fotografía', 0]]), /Logística/);
+  assert.doesNotMatch(G.barList([['Logística', 2], ['Fotografía', 0]]), /Fotografía/);
+  assert.match(G.stackedRows([{ name: '<b>Escuela</b>', total: 1, by_status: { PENDIENTE: 1, ASIGNADO: 0, RECIBIDO: 0, ENTREGADO: 0 } }]), /&#60;b&#62;Escuela/);
+  assert.match(G.ring(72.2, 'Con padrino', 26, 'asignado'), /--deg:259\.9deg/);
+});
+
+test('Audit y Access: exportación a Excel del dashboard y vista Reportes lista', () => {
+  assert.equal(Audit.describeAuditDetail({ action: 'DATA_EXPORTED', entity: 'events', detail: { format: 'xlsx', report: 'dashboard', sheets: 8, count: 36 } }),
+    'Reporte del evento en Excel · 8 hojas · 36 cartas');
+  const view = Access.viewByKey('reportes');
+  assert.equal(view.ready, true);
+  const rep = { role: 'OPERADOR', modules: ['REPORTES'], must_change_password: false };
+  assert.ok(Access.canSee(rep, view));
+  assert.ok(!Access.canSee(rep, Access.viewByKey('ninos')), 'Reportes no abre Niños: el aviso se muestra sin enlace');
+});
