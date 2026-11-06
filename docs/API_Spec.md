@@ -136,6 +136,8 @@ Respuesta paginada:
 | 45 | GET | `/letters/by-code/{code}` | A |
 | **Dashboard** ||||
 | 46 | GET | `/reports/options` · `/reports/dashboard` · `/reports/events` · `/reports/dashboard/export` | `REPORTES` (F7) |
+| **Respaldos** ||||
+| 47 | GET · POST | `/backups` · `/backups/{name}/download` · `/backups/{name}/restore` · `/backups/restore-upload` | `ADMIN` (F8) |
 
 `V*` = el voluntario solo ve la **vista restringida** de cartas que están disponibles o que él adoptó.
 
@@ -390,6 +392,22 @@ Base `/api/reports`, módulo `REPORTES`. Solo conteos (sin datos de personas); s
 | `GET /api/reports/dashboard/export?event_id` | `.xlsx` (8 hojas; 5 si el evento no es de Navidad), auditado `DATA_EXPORTED` | `404`, `422` |
 
 También: `GET /api/children?without_letter_event_id=<id>` (niñas y niños sin carta en ese evento). Definiciones de cada indicador: [`fases/Fase_7_Contratos.md`](fases/Fase_7_Contratos.md) §2. El diseño original por rol (TUTOR, VOLUNTARIO) queda para la fase de nube.
+
+---
+
+### 3.12 Respaldos y restauración (vigente desde la F8, ADR-0015)
+
+Base `/api/backups`, solo `ADMIN`, `Cache-Control: no-store`. Un respaldo es un `.zip` con `manifest.json`, `sonar.db` y `uploads/`.
+
+| Método y ruta | Cuerpo | Respuesta | Errores |
+|---|---|---|---|
+| `GET /api/backups` | | `{ items: Backup[], settings }` | `401`, `403` |
+| `POST /api/backups` | | `201 { backup }` (manual; registra `BACKUP_CREATED`) | `409 BACKUP_IN_PROGRESS`, `500 BACKUP_FAILED` |
+| `GET /api/backups/{name}/download` | | `.zip` (registra `BACKUP_DOWNLOADED`) | `404` |
+| `POST /api/backups/{name}/restore` | `{ confirm: "RESTAURAR" }` | `{ restored, pre_backup, schema_from, schema_to, sessions_closed: true }` | `422 CONFIRMATION_REQUIRED` · `BACKUP_INVALID` · `BACKUP_TOO_NEW` · `BACKUP_NO_ADMIN`, `404`, `409`, `500 RESTORE_FAILED` |
+| `POST /api/backups/restore-upload?confirm=RESTAURAR` | el `.zip` (`application/zip`) | igual que `restore` | los anteriores + `413`, `415` |
+
+Restaurar cierra **todas** las sesiones (`token_version + 1`). `GET /api/health` agrega `demo: true|false`. Esquemas, reglas y validaciones: [`fases/Fase_8_Contratos.md`](fases/Fase_8_Contratos.md) §2–§5.
 
 ---
 

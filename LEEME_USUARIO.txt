@@ -162,6 +162,38 @@ cada minuto o con el botón "Actualizar".
 - En Inicio aparece el "Avance" del evento.
 
 
+RESPALDOS (COPIAS DE SEGURIDAD)
+-------------------------------
+- El sistema guarda solo UN RESPALDO AL DÍA mientras está abierto
+  (base de datos y fotos), en la carpeta backups de la carpeta de
+  datos. Se conservan los 14 más recientes.
+- Menú Respaldos (administradores): "Respaldar ahora", "Descargar"
+  y "Restaurar". También el acceso "Respaldar ahora" del menú
+  Inicio o el archivo Respaldar.bat.
+- UNA VEZ POR SEMANA descarga el respaldo más reciente y guárdalo
+  FUERA de esta computadora (USB o carpeta en la nube). Contiene
+  datos de menores: guárdalo en un lugar protegido.
+- RESTAURAR reemplaza todos los datos por los del respaldo y cierra
+  todas las sesiones. Antes se guarda un respaldo "Antes de
+  restaurar" para poder deshacerlo.
+- Si el sistema no abre: ciérralo y arrastra el archivo
+  sonar-....zip sobre Restaurar.bat (en la carpeta del programa).
+
+
+PRACTICAR (DEMOSTRACIÓN)
+------------------------
+El acceso "Soñar Despierto (demostración)" abre una copia aparte
+con datos FICTICIOS (http://localhost:8775). No toca los datos
+reales. Correo admin@demo.sonardespierto.org, contraseña Demo2026.
+
+
+MANUAL COMPLETO
+---------------
+Menú Inicio -> "Manual de usuario" (o public\manual.html en esta
+carpeta). Incluye la guía para usar el sistema desde otras
+computadoras (modo LAN) y la solución de problemas.
+
+
 LA BITÁCORA
 -----------
 Menú Bitácora (solo administradores): registra quién entró, quién
@@ -215,7 +247,7 @@ En la carpeta:
 (cópiala y pégala en la barra de direcciones del Explorador).
 
 Ahí están la base de datos, la configuración (config.env), el
-registro de actividad (logs) y los respaldos.
+registro de actividad (logs) y los respaldos (carpeta backups).
 
 NO BORRES NI MUEVAS ESA CARPETA: ahí está toda la información
 del sistema. No la pongas dentro de OneDrive, Dropbox ni otra

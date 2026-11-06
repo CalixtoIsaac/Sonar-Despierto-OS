@@ -43,11 +43,12 @@ test('Access: estados de cuenta, módulos sensibles, menú y hash', () => {
   assert.ok(Access.SENSITIVE_MODULES.every((m) => MODULE_KEYS.includes(m)));
   const operador = { role: 'OPERADOR', modules: [...MODULE_KEYS] };
   const keys = Access.visibleMenu(operador).map((v) => v.key);
-  for (const k of ['usuarios', 'usuario', 'bitacora']) assert.ok(!keys.includes(k), k);
+  for (const k of ['usuarios', 'usuario', 'bitacora', 'respaldos']) assert.ok(!keys.includes(k), k);
   const admin = Access.visibleMenu({ role: 'ADMIN', modules: [] }).map((v) => v.key);
   assert.ok(!admin.includes('usuario'), 'las vistas ocultas no aparecen en el menú');
   assert.equal(admin.indexOf('bitacora'), admin.indexOf('usuarios') + 1, 'Bitácora va después de Usuarios');
-  assert.equal(admin.length, 16); // + Movimientos y Centros y categorías (F6)
+  assert.equal(admin.indexOf('respaldos'), admin.indexOf('bitacora') + 1, 'Respaldos va después de Bitácora');
+  assert.equal(admin.length, 17); // + Movimientos y Centros y categorías (F6) + Respaldos (F8)
   assert.deepEqual(Access.parseHash('#usuario/7?x=1'), { key: 'usuario', id: '7', params: { x: '1' } });
   assert.deepEqual(Access.parseHash('#'), { key: 'inicio', id: null, params: {} });
   assert.equal(Access.buildHash('usuarios', null, { tab: 'solicitudes', q: '', page: 2 }), '#usuarios?tab=solicitudes&page=2');

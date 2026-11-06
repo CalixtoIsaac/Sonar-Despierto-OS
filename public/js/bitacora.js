@@ -18,12 +18,13 @@ const Bitacora = (() => {
 
   function groupBadge(action) {
     const g = Audit.GROUPS.find((x) => x.key === Audit.AUDIT_ACTION_GROUP[action]);
-    const tone = { sesion: 'badge-info', cuentas: 'badge-sun', permisos: 'badge-warning', personas: 'badge-success', eventos: 'badge-sun', exportaciones: 'badge-danger' }[g?.key] || '';
+    const tone = { sesion: 'badge-info', cuentas: 'badge-sun', permisos: 'badge-warning', personas: 'badge-success', eventos: 'badge-sun', exportaciones: 'badge-danger', respaldos: 'badge-info' }[g?.key] || '';
     return `<span class="badge badge-plain ${tone}">${g ? UI.icon(g.icon) : ''}${esc(Audit.auditActionLabel(action))}</span>`;
   }
 
   function about(log) {
     if (!log.entity) return '—';
+    if (log.entity === 'backups') return '<a href="#respaldos">Respaldos</a>';
     if (!log.entity_id) return Audit.ENTITY_PLURAL[log.entity] ? esc(`Listado de ${Audit.ENTITY_PLURAL[log.entity]}`) : esc(log.entity);
     const label = Audit.ENTITY_LABEL[log.entity] || log.entity;
     let text = `${label} #${log.entity_id ?? '—'}`;

@@ -18,9 +18,9 @@ const OUT = path.join(ROOT, 'dist', 'SonarDespierto');
 const args = process.argv.slice(2);
 
 const COPY = [
-  'server.js', 'package.json', 'config.env.template', 'SonarDespierto.bat', 'LEEME_USUARIO.txt',
+  'server.js', 'package.json', 'config.env.template', 'SonarDespierto.bat', 'Respaldar.bat', 'Restaurar.bat', 'LEEME_USUARIO.txt',
   'lib', 'services', 'routes', 'public', 'node_modules',
-  'scripts/reset-admin.js', 'scripts/create-user.js'
+  'scripts/reset-admin.js', 'scripts/create-user.js', 'scripts/respaldos.js', 'scripts/demo.js'
 ];
 
 function step(msg) {
@@ -78,6 +78,8 @@ async function smokeTest() {
     await smokeCalendar(json, { Authorization: `Bearer ${changed.body.token}` }, me.body.user.id);
     await smokeInventory(json, { Authorization: `Bearer ${changed.body.token}` });
     await smokeReports(json, base, { Authorization: `Bearer ${changed.body.token}` });
+    await smokeSecurity(json, base);
+    await smokeBackups(json, base, { Authorization: `Bearer ${changed.body.token}` }); // al final: cierra las sesiones
     console.log('  PRUEBA DE HUMO OK');
   } finally {
     child.kill();
@@ -232,6 +234,36 @@ async function smokeReports(json, base, admin) {
   expect(audit.body.total === 1, 'exportación en bitácora');
 }
 
+/** Fase 8: cabeceras de seguridad y manual de usuario servido por el paquete. */
+async function smokeSecurity(json, base) {
+  const expect = (cond, msg) => { if (!cond) throw new Error(`seguridad: ${msg}`); };
+  const res = await fetch(`${base}/app`);
+  expect(/script-src 'self'/.test(res.headers.get('content-security-policy') || ''), 'CSP en las páginas');
+  const manual = await json('/manual.html');
+  expect(manual.status === 200 && String(manual.body).includes('Manual de usuario'), 'manual de usuario');
+}
+
+/** Fase 8 (Gate): respaldo → cambio → restaurar devuelve los datos del respaldo y cierra las sesiones. */
+async function smokeBackups(json, base, admin) {
+  const expect = (cond, msg) => { if (!cond) throw new Error(`respaldos: ${msg}`); };
+  const created = await json('/api/backups', { method: 'POST', headers: admin });
+  expect(created.status === 201 && created.body.backup.uploads === 0, `respaldo manual ${created.status}`);
+  const name = created.body.backup.name;
+  const dl = await fetch(`${base}/api/backups/${name}/download`, { headers: admin });
+  expect(dl.status === 200 && Buffer.from(await dl.arrayBuffer()).subarray(0, 2).toString() === 'PK', 'descarga del .zip');
+  const extra = await json('/api/schools', { method: 'POST', headers: admin, body: JSON.stringify({ name: 'Escuela posterior al respaldo' }) });
+  expect(extra.status === 201, 'cambio después del respaldo');
+  const restored = await json(`/api/backups/${name}/restore`, { method: 'POST', headers: admin, body: JSON.stringify({ confirm: 'RESTAURAR' }) });
+  expect(restored.status === 200 && restored.body.sessions_closed, `restaurar ${restored.status} ${JSON.stringify(restored.body)}`);
+  expect((await json('/api/auth/me', { headers: admin })).status === 401, 'sesiones cerradas al restaurar');
+  const login = await json('/api/auth/login', { method: 'POST', body: JSON.stringify({ email: 'admin@sonardespierto.org', password: 'HumoSeguro2026' }) });
+  const auth = { Authorization: `Bearer ${login.body.token}` };
+  const schools = await json('/api/schools?search=posterior', { headers: auth });
+  expect(schools.status === 200 && schools.body.total === 0, 'la escuela posterior ya no existe');
+  const list = await json('/api/backups', { headers: auth });
+  expect(list.body.items.some((b) => b.kind === 'ANTES_DE_RESTAURAR'), 'respaldo previo a la restauración');
+}
+
 async function main() {
   if (!fs.existsSync(path.join(ROOT, 'node_modules', 'better-sqlite3'))) fail('Primero ejecuta: npm install');
 
@@ -255,7 +287,8 @@ async function main() {
   await smokeTest();
 
   console.log(`\n✔ Paquete listo: ${OUT}`);
-  console.log('  Cópialo completo a la PC de la oficina y crea el acceso directo con:');
+  console.log('  Para el instalador de Windows: npm run instalador  (requiere Inno Setup 6).');
+  console.log('  O cópialo completo a la PC de la oficina y crea el acceso directo con:');
   console.log('  powershell -ExecutionPolicy Bypass -File scripts\\crear-acceso-directo.ps1');
 }
 

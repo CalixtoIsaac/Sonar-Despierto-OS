@@ -9,3 +9,4 @@
 *.woff2 binary
 *.db binary
 *.sqlite3 binary
+*.iss text eol=crlf

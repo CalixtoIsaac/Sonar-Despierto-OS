@@ -10,8 +10,9 @@ secret.key
 jwt.secret
 CREDENCIALES_INICIALES.txt
 
-# Datos locales: BD SQLite, logs, archivos subidos (ADR-0003)
+# Datos locales: BD SQLite, logs, archivos subidos (ADR-0003) y datos de demostración (F8)
 .data/
+.data-demo/
 data/
 *.db
 *.db-wal

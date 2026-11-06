@@ -84,7 +84,7 @@ test('directorio de datos: SD_DATA_DIR > paquete portátil (%LOCALAPPDATA%) > .d
 test('menú según rol y permisos', () => {
   const admin = { role: 'ADMIN', modules: [...MODULE_KEYS], must_change_password: false };
   const operador = { role: 'OPERADOR', modules: ['CARTAS'], must_change_password: false };
-  assert.equal(Access.visibleMenu(admin).length, 16); // F2: + Bitácora · F6: + Movimientos, Centros y categorías
+  assert.equal(Access.visibleMenu(admin).length, 17); // F2: + Bitácora · F6: + Movimientos, Centros y categorías · F8: + Respaldos
   assert.deepEqual(Access.visibleMenu(operador).map((v) => v.key), ['inicio', 'cartas', 'buscar', 'perfil']);
   assert.deepEqual(Access.visibleMenu({ ...admin, must_change_password: true }), []);
   assert.equal(Access.canSee(operador, Access.viewByKey('usuarios')), false);
