@@ -716,3 +716,9 @@ label.btn.is-busy { opacity: .7; pointer-events: none; }
   .rep-columns { height: 180px; }
   .rep-updated { margin-left: 0; width: 100%; }
 }
+
+/* ---------- Respaldos (F8) ---------- */
+.upload-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-top: 12px; }
+.upload-row .input { flex: 1 1 240px; min-width: 0; padding-top: 8px; }
+code.break { overflow-wrap: anywhere; font-size: 14px; }
+[data-status] > .panel { margin-bottom: 20px; }

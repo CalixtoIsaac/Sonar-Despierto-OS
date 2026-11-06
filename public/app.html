@@ -5,11 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="robots" content="noindex, nofollow">
   <title>Soñar Despierto</title>
-  <link rel="icon" href="/img/favicon.ico">
+  <link rel="icon" href="/img/favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="/img/favicon.ico" sizes="any">
 
   <script src="/js/theme.js"></script>
   <!-- Sin sesión, de vuelta al login antes de pintar nada -->
-  <script>try { if (!sessionStorage.getItem('sd.token')) location.replace('/'); } catch (e) { location.replace('/'); }</script>
+  <script src="/js/session-guard.js"></script>
 
   <link rel="stylesheet" href="/vendor/fonts/fonts.css">
   <link rel="stylesheet" href="/css/theme.css">
@@ -101,6 +102,7 @@
   <script src="/js/inventario-catalogos.js"></script>
   <script src="/js/reportes-ui.js"></script>
   <script src="/js/reportes.js"></script>
+  <script src="/js/respaldos.js"></script>
   <script src="/js/app.js"></script>
 </body>
 </html>

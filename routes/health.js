@@ -3,7 +3,7 @@
  */
 const express = require('express');
 
-const { APP_ID } = require('../lib/config');
+const { APP_ID, getConfig } = require('../lib/config');
 const { getDb } = require('../lib/db');
 const { AppError } = require('../lib/errors');
 const { version } = require('../package.json');
@@ -11,7 +11,7 @@ const { version } = require('../package.json');
 const router = express.Router();
 
 router.get('/', (req, res) => {
-  res.json({ status: 'ok', app: APP_ID, version });
+  res.json({ status: 'ok', app: APP_ID, version, demo: getConfig().demoMode });
 });
 
 router.get('/db', (req, res) => {

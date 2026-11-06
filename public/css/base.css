@@ -41,14 +41,14 @@ button, input, select, textarea { font: inherit; color: inherit; }
   transition: background-color .25s ease, border-color .25s ease, color .25s ease !important;
 }
 
-/* ---------- Marca (logotipo de Lovable recreado en SVG + texto) ---------- */
+/* ---------- Marca (logotipo de Soñar Despierto en SVG: rayos de sol, arcoíris y texto) ---------- */
 .logo { display: inline-flex; align-items: center; gap: 10px; color: var(--foreground); text-decoration: none; }
-.logo-mark { width: 44px; height: 31px; flex-shrink: 0; }
+.logo-mark { width: 52px; height: 37px; flex-shrink: 0; }
 .logo-text { line-height: 1; }
 .logo-name { font-family: var(--font-display); font-weight: 900; font-size: 20px; }
 .logo-sub { margin-top: 2px; font-family: var(--font-geo); font-weight: 300; font-size: 10px; letter-spacing: .3em; text-transform: uppercase; }
 .logo-place { font-family: var(--font-serif); font-style: italic; font-weight: 600; font-size: 14px; color: var(--primary-text); }
-.logo.lg .logo-mark { width: 84px; height: 59px; }
+.logo.lg .logo-mark { width: 100px; height: 71px; }
 .logo.lg .logo-name { font-size: 36px; }
 .logo.lg .logo-sub { margin-top: 4px; font-size: 17px; }
 .logo.lg .logo-place { font-size: 24px; }
@@ -362,3 +362,9 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .chip-x { display: grid; place-items: center; width: 26px; height: 26px; border: 0; border-radius: 50%; background: transparent; color: inherit; cursor: pointer; }
 .chip-x:hover { background: color-mix(in srgb, currentColor 15%, transparent); }
 .chip-x .icon { width: 14px; height: 14px; }
+
+/* Franja del modo demostración (F8): todas las páginas */
+.demo-ribbon {
+  position: sticky; top: 0; z-index: 60; padding: 6px 16px; text-align: center; font-size: 14px; font-weight: 700;
+  background: var(--warning-bg); color: var(--warning-text); border-bottom: 1px solid color-mix(in oklab, var(--warning-text) 30%, transparent);
+}

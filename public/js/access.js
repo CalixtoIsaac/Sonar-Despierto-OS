@@ -67,6 +67,8 @@ const Access = (() => {
     { key: 'usuario', label: 'Detalle de usuario', icon: 'userCog', adminOnly: true, hidden: true, ready: true, parent: 'usuarios' },
     { key: 'bitacora', label: 'Bitácora', icon: 'scroll', adminOnly: true, section: 'Administración', ready: true,
       description: 'Registro de inicios de sesión y cambios en cuentas, permisos y datos de personas.' },
+    { key: 'respaldos', label: 'Respaldos', icon: 'shield', adminOnly: true, section: 'Administración', ready: true,
+      description: 'Copias de seguridad automáticas, respaldar ahora y restaurar.' },
     { key: 'perfil', label: 'Mi perfil', icon: 'userCircle', section: 'Mi cuenta', ready: true },
     { key: 'cambiar-contrasena', label: 'Cambiar contraseña', icon: 'key', hidden: true, ready: true },
     { key: 'sin-acceso', label: 'Sin acceso', icon: 'lock', hidden: true, ready: true }

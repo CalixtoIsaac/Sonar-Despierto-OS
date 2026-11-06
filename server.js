@@ -16,8 +16,20 @@ const valueOf = (flag) => {
   return i >= 0 ? args[i + 1] : undefined;
 };
 if (args.includes('--help') || args.includes('-h')) {
-  console.log('Uso: node server.js [--no-browser] [--port N] [--lan] [--data-dir RUTA] [--reset-admin [--email CORREO]]');
+  console.log([
+    'Uso: node server.js [--no-browser] [--port N] [--lan] [--data-dir RUTA] [--demo]',
+    '       node server.js --reset-admin [--email CORREO]',
+    '       node server.js --respaldar | --listar-respaldos | --restaurar ARCHIVO.zip [--si]'
+  ].join('\n'));
   process.exit(0);
+}
+if (args.includes('--demo')) {
+  // Datos de demostración en su propia carpeta y puerto: nunca se mezclan con los reales
+  const demo = require('./scripts/demo');
+  process.env.SD_DATA_DIR = demo.demoDataDir(); // --data-dir (más abajo) puede cambiarla
+  process.env.SD_DEMO = 'true';
+  if (!valueOf('--port')) process.env.PORT = String(demo.DEMO_PORT);
+  process.env.BACKUP_AUTO = 'false';
 }
 if (args.includes('--no-browser')) process.env.OPEN_BROWSER = 'false';
 if (args.includes('--lan')) process.env.LAN_MODE = 'true';
@@ -25,6 +37,10 @@ if (valueOf('--port')) process.env.PORT = valueOf('--port');
 if (valueOf('--data-dir')) process.env.SD_DATA_DIR = path.resolve(valueOf('--data-dir'));
 if (args.includes('--reset-admin')) {
   require('./scripts/reset-admin'); // asigna una contraseña temporal y termina
+  return;
+}
+if (['--respaldar', '--restaurar', '--listar-respaldos'].some((f) => args.includes(f))) {
+  require('./scripts/respaldos'); // respalda o restaura y termina
   return;
 }
 
@@ -58,18 +74,25 @@ async function main() {
   const { getDb, closeDb } = require('./lib/db');
   const { getLogger } = require('./lib/logger');
   const users = require('./services/users');
+  const backups = require('./services/backups');
   const logger = getLogger();
+
+  // Actualización: si la BD tiene migraciones pendientes, primero se respalda tal como está (ADR-0015)
+  const preUpgrade = await backups.backupBeforeUpgrade();
+  if (preUpgrade) console.log(`Se actualizó el programa: respaldo previo guardado como ${preUpgrade.name}`);
 
   getDb(); // abre la BD y aplica las migraciones pendientes
   users.ensureFirstAdmin();
+  if (config.demoMode) await require('./scripts/demo').seedIfEmpty();
   logger.info('Base de datos lista (sqlite)');
 
   const { createApp } = require('./lib/app');
   const server = createApp().listen(port, config.bindHost, () => {
     const localUrl = `http://localhost:${port}`;
     const lanUrls = config.lanMode ? launcher.lanIpv4Addresses().map((ip) => `http://${ip}:${port}`) : [];
-    console.log(launcher.bannerText({ localUrl, lanUrls, dataDir: config.dataDir, version }));
+    console.log(launcher.bannerText({ localUrl, lanUrls, dataDir: config.dataDir, version, demo: config.demoMode }));
 
+    if (config.demoMode) console.log(launcher.credentialsBox(require('./scripts/demo').credentialsText()));
     const credentials = users.credentialsPath();
     if (fs.existsSync(credentials)) {
       console.log(launcher.credentialsBox(fs.readFileSync(credentials, 'utf8')));
@@ -77,6 +100,7 @@ async function main() {
     }
     logger.info(`Servidor listo en ${localUrl}${config.lanMode ? ' (modo LAN)' : ''}`);
     if (config.openBrowser) launcher.openBrowser(localUrl);
+    backups.startAutoBackups(); // respaldo diario en {DATA_DIR}\\backups
   });
 
   // Cierre ordenado: libera el archivo de la base de datos.

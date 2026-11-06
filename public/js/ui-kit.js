@@ -251,7 +251,8 @@ const UI = (() => {
   function logo({ size = 'md' } = {}) {
     return `
       <span class="logo ${size === 'lg' ? 'lg' : ''}">
-        <svg class="logo-mark" viewBox="0 0 100 70" aria-hidden="true" focusable="false">
+        <svg class="logo-mark" viewBox="-15 -24 130 92" aria-hidden="true" focusable="false">
+          <path class="logo-rays" d="M99.5 47.8L111.1 44.2M89.1 20.9L98.3 11.3M71.6 3.3L77 -11.4M50 -3L50 -20.2M28.4 3.3L23 -11.4M10.9 20.9L1.7 11.3M0.5 47.8L-11.1 44.2" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round"/>
           <path d="M8 64 C 9 30, 30 8, 50 8 C 72 7, 92 30, 92 64" fill="none" stroke="var(--primary)" stroke-width="9" stroke-linecap="round"/>
           <path d="M22 64 C 22 40, 35 22, 50 22 C 66 21, 78 40, 78 64" fill="none" stroke="var(--secondary)" stroke-width="9" stroke-linecap="round"/>
           <path d="M36 64 C 36 50, 42 37, 50 37 C 59 36, 64 50, 64 64" fill="none" stroke="var(--sun)" stroke-width="9" stroke-linecap="round"/>
@@ -469,6 +470,23 @@ const UI = (() => {
       const first = form.querySelector('input, textarea, select');
       if (first) first.focus();
     });
+  }
+
+  // ---------- Modo demostración (npm run demo): franja visible en todas las páginas ----------
+  function showDemoRibbon() {
+    if (typeof document === 'undefined' || typeof fetch === 'undefined') return;
+    fetch('/api/health').then((r) => (r.ok ? r.json() : null)).then((info) => {
+      if (!info || !info.demo || document.querySelector('.demo-ribbon')) return;
+      const bar = document.createElement('div');
+      bar.className = 'demo-ribbon';
+      bar.setAttribute('role', 'note');
+      bar.textContent = 'Modo demostración: todos los datos son ficticios. Contraseña de las cuentas de prueba: Demo2026';
+      document.body.prepend(bar);
+    }).catch(() => { /* sin servidor: no importa */ });
+  }
+  if (typeof document !== 'undefined') {
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', showDemoRibbon);
+    else showDemoRibbon();
   }
 
   return {

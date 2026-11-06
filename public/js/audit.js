@@ -14,7 +14,8 @@ const Audit = (() => {
     'EVENT_STATUS_CHANGED', 'EVENT_VOLUNTEERS_ADDED', 'EVENT_VOLUNTEER_UPDATED',
     'LETTER_STATUS_CHANGED', 'LETTER_PHOTO_UPDATED', 'LETTER_PHOTO_REMOVED',
     'ACTIVITY_STATUS_CHANGED', 'ACTIVITY_VOLUNTEERS_ADDED', 'ACTIVITY_VOLUNTEER_REMOVED', 'ACTIVITY_OVERLAP_ACCEPTED',
-    'INVENTORY_MOVEMENT_CREATED', 'INVENTORY_MOVEMENT_REVERSED'
+    'INVENTORY_MOVEMENT_CREATED', 'INVENTORY_MOVEMENT_REVERSED',
+    'BACKUP_CREATED', 'BACKUP_DOWNLOADED', 'BACKUP_RESTORED'
   ];
 
   const AUDIT_ACTION_LABEL = {
@@ -50,7 +51,10 @@ const Audit = (() => {
     ACTIVITY_VOLUNTEER_REMOVED: 'Voluntario quitado de la actividad',
     ACTIVITY_OVERLAP_ACCEPTED: 'Actividad guardada con traslape de horario',
     INVENTORY_MOVEMENT_CREATED: 'Movimiento de inventario registrado',
-    INVENTORY_MOVEMENT_REVERSED: 'Movimiento de inventario anulado'
+    INVENTORY_MOVEMENT_REVERSED: 'Movimiento de inventario anulado',
+    BACKUP_CREATED: 'Respaldo creado',
+    BACKUP_DOWNLOADED: 'Respaldo descargado',
+    BACKUP_RESTORED: 'Respaldo restaurado'
   };
 
   const GROUPS = [
@@ -61,7 +65,8 @@ const Audit = (() => {
     { key: 'eventos', label: 'Eventos y cartas', icon: 'mail' },
     { key: 'calendario', label: 'Calendario', icon: 'calendarRange' },
     { key: 'inventario', label: 'Inventario', icon: 'boxes' },
-    { key: 'exportaciones', label: 'Exportaciones', icon: 'download' }
+    { key: 'exportaciones', label: 'Exportaciones', icon: 'download' },
+    { key: 'respaldos', label: 'Respaldos', icon: 'shield' }
   ];
 
   const AUDIT_ACTION_GROUP = {
@@ -75,13 +80,14 @@ const Audit = (() => {
     LETTER_STATUS_CHANGED: 'eventos', LETTER_PHOTO_UPDATED: 'eventos', LETTER_PHOTO_REMOVED: 'eventos',
     ACTIVITY_STATUS_CHANGED: 'calendario', ACTIVITY_VOLUNTEERS_ADDED: 'calendario', ACTIVITY_VOLUNTEER_REMOVED: 'calendario',
     ACTIVITY_OVERLAP_ACCEPTED: 'calendario',
-    INVENTORY_MOVEMENT_CREATED: 'inventario', INVENTORY_MOVEMENT_REVERSED: 'inventario'
+    INVENTORY_MOVEMENT_CREATED: 'inventario', INVENTORY_MOVEMENT_REVERSED: 'inventario',
+    BACKUP_CREATED: 'respaldos', BACKUP_DOWNLOADED: 'respaldos', BACKUP_RESTORED: 'respaldos'
   };
 
   const ENTITY_LABEL = { users: 'Usuario', volunteers: 'Voluntario', schools: 'Escuela', tutors: 'Tutor', children: 'Niña o niño',
     events: 'Evento', letters: 'Carta', activities: 'Actividad',
     inventory_items: 'Artículo de inventario', inventory_categories: 'Categoría de inventario', collection_centers: 'Centro de acopio',
-    inventory_movements: 'Movimientos de inventario' };
+    inventory_movements: 'Movimientos de inventario', backups: 'Respaldos' };
   const ENTITY_PLURAL = { volunteers: 'voluntarios', schools: 'escuelas', tutors: 'tutores', children: 'niñas y niños',
     events: 'eventos', letters: 'cartas', activities: 'actividades',
     inventory_items: 'existencias de inventario', inventory_movements: 'movimientos de inventario' };
@@ -193,6 +199,17 @@ const Audit = (() => {
         const ids = d.with || [];
         return ids.length ? `Se cruza con ${ids.length === 1 ? 'la actividad' : 'las actividades'} ${ids.map((i) => `#${i}`).join(', ')}` : '';
       }
+      case 'BACKUP_CREATED': {
+        const how = { auto: 'Automático', cli: 'Desde la computadora anfitriona', actualizacion: 'Antes de actualizar' }[d.via];
+        const kind = { ANTES_DE_RESTAURAR: 'Antes de restaurar', ANTES_DE_ACTUALIZAR: 'Antes de actualizar' }[d.kind];
+        return [d.file, kind || how, d.uploads ? `${d.uploads} ${d.uploads === 1 ? 'foto' : 'fotos'}` : null,
+          d.copy === 'error' ? 'sin copia extra' : null].filter(Boolean).join(' · ');
+      }
+      case 'BACKUP_DOWNLOADED':
+        return d.file || '';
+      case 'BACKUP_RESTORED':
+        return [d.file, d.backup_created_at ? `respaldo del ${new Date(d.backup_created_at).toLocaleDateString('es-MX', { timeZone: 'America/Mexico_City', dateStyle: 'medium' })}` : null,
+          d.by ? `por ${d.by}` : (d.via === 'cli' ? 'desde la computadora anfitriona' : null)].filter(Boolean).join(' · ');
       case 'INVENTORY_MOVEMENT_CREATED': {
         const what = d.type === 'TRASPASO' ? `Traspaso del centro #${d.center_id} al #${d.to_center_id}`
           : `${d.type === 'SALIDA' ? 'Salida' : 'Entrada'} · ${MOVEMENT_REASON_LABEL[d.reason] || d.reason || ''} · centro #${d.center_id}`;

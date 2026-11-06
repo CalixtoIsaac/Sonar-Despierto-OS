@@ -45,9 +45,14 @@ sistema pide cambiarla (y el archivo se borra solo).
 | `npm run create-user -- --email ana@sonardespierto.org --first-name Ana --last-name Prueba --role OPERADOR --modules CARTAS,CALENDARIO` | Crear un usuario desde la consola (soporte; lo normal es el menú Usuarios) |
 | `npm run reset-admin [-- --email CORREO]` | Contraseña temporal para el administrador (o ese correo) |
 | `npm run empaquetar` | Pruebas + paquete portátil `dist\SonarDespierto` + prueba de humo |
+| `npm run instalador` | Lo anterior + instalador de Windows `dist\instalador\SonarDespierto-Instalador-<versión>.exe` (requiere Inno Setup 6) |
+| `npm run respaldar` | Respaldo manual en `{datos}\backups` (funciona con el sistema abierto) |
+| `npm run restaurar -- RUTA\sonar-….zip` | Restaurar un respaldo con el sistema cerrado (pide escribir RESTAURAR) |
+| `npm run demo [-- --reiniciar]` | Abre el sistema con datos **ficticios** en `.data-demo` y el puerto 8775 (contraseña `Demo2026`) |
 
 Opciones de `node server.js` / `SonarDespierto.bat`: `--no-browser`, `--port N`, `--lan`,
-`--data-dir RUTA`, `--reset-admin [--email CORREO]`.
+`--data-dir RUTA`, `--demo`, `--reset-admin [--email CORREO]`, `--respaldar`, `--listar-respaldos`,
+`--restaurar ARCHIVO.zip [--si]`.
 
 ## Paquete portátil (PCs sin Node.js)
 
@@ -60,11 +65,30 @@ Genera **`dist\SonarDespierto\`** con su propio `node.exe`, las dependencias y `
 Se copia completa a la PC de la oficina; el acceso directo apunta a `SonarDespierto.bat`. Debe
 generarse en Windows de 64 bits (usa el `node.exe` y el binario de `better-sqlite3` de esa PC).
 
+## Instalador de Windows
+
+```powershell
+winget install JRSoftware.InnoSetup    # una sola vez
+npm run instalador
+```
+
+Instala por usuario (sin permisos de administrador) en `%LOCALAPPDATA%\Programs\SonarDespierto`, con accesos a
+Respaldar ahora, la carpeta de datos, el manual y config.env. Los datos no se tocan al actualizar ni al desinstalar
+([ADR-0015](docs/adr/0015-respaldos-instalador-y-endurecimiento.md)).
+
+## Respaldos
+
+Un respaldo diario automático (`.zip` con la base y las fotos) en `{datos}\backups`, además de uno antes de cada
+restauración y de cada actualización. Menú **Respaldos** (solo administradores): respaldar ahora, descargar,
+restaurar de la lista o subiendo un `.zip`. Copia extra opcional con `BACKUP_COPY_DIR`. Detalles en
+[`docs/fases/Fase_8_Contratos.md`](docs/fases/Fase_8_Contratos.md).
+
 ## Modo red local (LAN)
 
 Con `LAN_MODE=true` en `config.env` (o la opción `--lan`), el servidor escucha en todas las
 interfaces y el banner muestra la dirección para otras PCs (`http://IP-DE-ESTA-PC:8765`). Windows
 pedirá permiso en el Firewall: marca solo **Redes privadas**. No lo actives en redes públicas.
+Guía completa: [`docs/Guia_Modo_LAN.md`](docs/Guia_Modo_LAN.md).
 
 ## Carpeta de datos
 
@@ -81,17 +105,20 @@ Contiene `sonar.db` (SQLite), `secret.key`, `config.env`, `logs\sonar.log`, `upl
 ## Estructura
 
 ```text
-server.js · SonarDespierto.bat · package.json
+server.js · SonarDespierto.bat · Respaldar.bat · Restaurar.bat · package.json
 lib/        configuración, BD y migraciones, seguridad, middlewares de permisos, arranque
 services/   casos de uso y SQL (auth, users, audit, records, schools, tutors, volunteers, children)
 routes/     capa HTTP (/api/health, auth, users, audit-logs, schools, tutors, volunteers, children)
 public/     login.html, app.html, css/, js/ (ui-kit, access, vistas), vendor/fonts/
-scripts/    reset-admin, create-user, empaquetar, crear-acceso-directo.ps1
+scripts/    reset-admin, create-user, respaldos, demo, empaquetar, instalador, crear-acceso-directo.ps1
+installer/  SonarDespierto.iss (Inno Setup)
 test/       pruebas con node:test
 docs/       requerimientos, modelo de datos, API, pantallas, ADR y fases
 ```
 
 ## Documentación
+- **Manual de usuario:** [`public/manual.html`](public/manual.html) (en el sistema: `http://localhost:8765/manual.html`)
+- Guía de modo LAN: [`docs/Guia_Modo_LAN.md`](docs/Guia_Modo_LAN.md)
 - Hoja de ruta: [`docs/Roadmap_Fases.md`](docs/Roadmap_Fases.md)
 - Decisiones de arquitectura (ADR): [`docs/adr/`](docs/adr/)
 - Prompts y tareas por fase: [`docs/fases/`](docs/fases/)
@@ -120,4 +147,7 @@ docs/       requerimientos, modelo de datos, API, pantallas, ADR y fases
   recibidos y entregados, niñas y niños sin carta o sin consentimiento, voluntarios, escuelas, actividades e inventario),
   avisos con enlace a listados filtrados, gráficas de avance semanal y por escuela, comparativo de eventos y exportación a
   Excel auditada; las cifras coinciden con consultas SQL de control ([contratos](docs/fases/Fase_7_Contratos.md), ADR-0014).
-- **Siguiente:** Fase 8 — Empaquetado y entrega: ver la [hoja de ruta](docs/Roadmap_Fases.md).
+- **Fase 8 — Empaquetado y entrega:** 🟡 implementada (2026-11-05, versión 1.0.0). Respaldos automáticos y restauración
+  validada (pantalla, archivo o consola), instalador de Windows con Inno Setup, revisión de seguridad (CSP, cabecera Host,
+  `no-store`), manual de usuario, datos de demostración y guía de modo LAN ([contratos](docs/fases/Fase_8_Contratos.md),
+  ADR-0015). Falta el Gate manual: instalación limpia en una PC sin Node.js y validación del manual por la directiva.

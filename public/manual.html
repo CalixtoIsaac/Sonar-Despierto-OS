@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Manual de usuario · Soñar Despierto</title>
+  <link rel="icon" href="img/favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="img/favicon.ico" sizes="any">
+  <script src="js/theme.js"></script>
+  <link rel="stylesheet" href="vendor/fonts/fonts.css">
+  <link rel="stylesheet" href="css/theme.css">
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--background); color: var(--foreground); font-family: var(--font-sans); font-size: 17px; line-height: 1.6; }
+    .wrap { max-width: 920px; margin: 0 auto; padding: 32px 16px 80px; }
+    header.cover { border-bottom: 4px solid var(--primary); padding-bottom: 20px; margin-bottom: 28px; }
+    h1, h2, h3 { font-family: var(--font-display); line-height: 1.2; }
+    h1 { font-size: 36px; margin: 0 0 6px; }
+    h2 { font-size: 26px; margin: 48px 0 12px; padding-top: 12px; border-top: 1px solid var(--border); }
+    h3 { font-size: 20px; margin: 28px 0 8px; }
+    .muted { color: var(--muted-foreground); }
+    a { color: var(--primary-text); }
+    code, kbd { font-family: ui-monospace, Consolas, monospace; font-size: .92em; background: var(--muted); padding: 1px 6px; border-radius: 6px; overflow-wrap: anywhere; }
+    pre { background: var(--muted); padding: 12px 14px; border-radius: 10px; overflow-x: auto; font-size: 15px; }
+    pre code { background: none; padding: 0; }
+    table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 16px; }
+    th, td { text-align: left; vertical-align: top; padding: 8px 10px; border-bottom: 1px solid var(--border); }
+    th { font-size: 14px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted-foreground); }
+    .table-wrap { overflow-x: auto; }
+    .note, .warn, .tip { border-radius: 12px; padding: 12px 16px; margin: 16px 0; }
+    .note { background: var(--info-bg); color: var(--info-text); }
+    .warn { background: var(--warning-bg); color: var(--warning-text); }
+    .tip { background: var(--success-bg); color: var(--success-text); }
+    nav.toc { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 16px 24px; }
+    nav.toc ol { margin: 8px 0 0; padding-left: 22px; columns: 2 260px; }
+    nav.toc li { margin: 2px 0; break-inside: avoid; }
+    ol.steps > li { margin-bottom: 8px; }
+    .badge { display: inline-block; padding: 0 8px; border-radius: 999px; background: var(--muted); font-size: 14px; font-weight: 700; }
+    footer { margin-top: 56px; font-size: 15px; }
+    @media print {
+      body { font-size: 12pt; background: #fff; color: #000; }
+      .wrap { max-width: none; padding: 0; }
+      h2 { break-before: page; border-top: none; }
+      nav.toc { break-after: page; }
+      a { color: #000; text-decoration: none; }
+      .no-print { display: none; }
+    }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <header class="cover">
+    <p class="muted">Soñar Despierto Veracruz · Sistema de Gestión · versión 1.0</p>
+    <h1>Manual de usuario</h1>
+    <p>Para el personal y la coordinación. Explica cómo instalar el programa, entrar, usar cada módulo, hacer y restaurar respaldos y compartir el sistema en la red de la oficina.</p>
+    <p class="no-print muted">Para imprimirlo o guardarlo como PDF: <kbd>Ctrl</kbd> + <kbd>P</kbd>.</p>
+  </header>
+
+  <nav class="toc" aria-label="Contenido">
+    <strong>Contenido</strong>
+    <ol>
+      <li><a href="#que-es">Qué es y qué necesita</a></li>
+      <li><a href="#instalar">Instalar el programa</a></li>
+      <li><a href="#abrir">Abrir y cerrar el sistema</a></li>
+      <li><a href="#entrar">Entrar por primera vez</a></li>
+      <li><a href="#cuentas">Cuentas del personal y permisos</a></li>
+      <li><a href="#personas">Niñas y niños, escuelas, tutores y voluntarios</a></li>
+      <li><a href="#eventos">Eventos</a></li>
+      <li><a href="#cartas">Cartas de Navidad</a></li>
+      <li><a href="#calendario">Calendario</a></li>
+      <li><a href="#inventario">Inventario</a></li>
+      <li><a href="#reportes">Reportes</a></li>
+      <li><a href="#respaldos">Respaldos y restauración</a></li>
+      <li><a href="#lan">Usar el sistema desde otras computadoras (modo LAN)</a></li>
+      <li><a href="#demo">Practicar con la demostración</a></li>
+      <li><a href="#config">Configuración (config.env)</a></li>
+      <li><a href="#privacidad">Seguridad y privacidad</a></li>
+      <li><a href="#problemas">Problemas frecuentes</a></li>
+      <li><a href="#actualizar">Actualizar o desinstalar</a></li>
+    </ol>
+  </nav>
+
+  <h2 id="que-es">1. Qué es y qué necesita</h2>
+  <p>Es el programa de la asociación para organizar <strong>voluntarios, niñas y niños, escuelas, tutores, eventos, cartas de Navidad, calendario, inventario y reportes</strong>. Funciona en una computadora de la oficina y <strong>no necesita internet</strong>. Otras computadoras o celulares de la misma red pueden entrar si se activa el <a href="#lan">modo LAN</a>.</p>
+  <ul>
+    <li>Computadora con <strong>Windows 10 u 11 de 64 bits</strong>. No hace falta instalar nada más (el programa trae lo necesario).</li>
+    <li>Un navegador actualizado: Chrome, Edge o Firefox.</li>
+    <li>Unos 200 MB libres para el programa, más el espacio de los datos y respaldos.</li>
+  </ul>
+  <p>Hay dos tipos de cuenta: <span class="badge">Administrador</span> (todo, incluidos usuarios, bitácora y respaldos) y <span class="badge">Operador</span> (solo los módulos que el administrador le asigne).</p>
+
+  <h2 id="instalar">2. Instalar el programa</h2>
+  <ol class="steps">
+    <li>Copia el archivo <code>SonarDespierto-Instalador-1.0.0.exe</code> a la computadora de la oficina y ábrelo con doble clic.</li>
+    <li>Si Windows muestra “Windows protegió su PC”, haz clic en <em>Más información</em> → <em>Ejecutar de todas formas</em> (el instalador aún no tiene firma digital).</li>
+    <li>Sigue el asistente. Deja marcada la opción <em>Crear un acceso directo en el Escritorio</em>. La opción de <em>demostración</em> es para practicar con datos ficticios.</li>
+    <li>Al terminar, deja marcada <em>Abrir Soñar Despierto ahora</em>.</li>
+  </ol>
+  <p>No pide permisos de administrador de Windows: se instala para la cuenta de Windows que lo ejecuta. En el menú Inicio quedan: <em>Soñar Despierto</em>, <em>Respaldar ahora</em>, <em>Carpeta de datos y respaldos</em>, <em>Manual de usuario</em>, <em>Configuración (config.env)</em> y <em>Desinstalar</em>.</p>
+  <div class="note"><strong>¿Dónde quedan las cosas?</strong> El programa se instala en <code>%LOCALAPPDATA%\Programs\SonarDespierto</code>. Los <strong>datos</strong> (base de datos, fotos, respaldos y configuración) van aparte, en <code>%LOCALAPPDATA%\SonarDespierto</code>. Para abrir esa carpeta usa el acceso <em>Carpeta de datos y respaldos</em> del menú Inicio, o pega la ruta en la barra de direcciones del Explorador.</div>
+  <p class="muted">Sin instalador también funciona: copia la carpeta del paquete portátil <code>SonarDespierto</code> completa a la computadora y haz doble clic en <code>SonarDespierto.bat</code>.</p>
+
+  <h2 id="abrir">3. Abrir y cerrar el sistema</h2>
+  <ol class="steps">
+    <li>Doble clic en el ícono <strong>Soñar Despierto</strong> del Escritorio.</li>
+    <li>Se abre una <strong>ventana negra</strong> y, unos segundos después, el navegador con la pantalla para iniciar sesión. Si el navegador no se abre, escribe la dirección que muestra la ventana negra (normalmente <code>http://localhost:8765</code>).</li>
+  </ol>
+  <div class="warn"><strong>No cierres la ventana negra</strong> mientras uses el sistema: si la cierras, el sistema se apaga (los datos no se pierden). Para apagarlo al final del día, cierra esa ventana o presiona <kbd>Ctrl</kbd> + <kbd>C</kbd> en ella. Si haces doble clic con el sistema ya abierto, solo se abre otra pestaña del navegador.</div>
+
+  <h2 id="entrar">4. Entrar por primera vez</h2>
+  <ol class="steps">
+    <li>La primera vez, la ventana negra muestra el correo del administrador (<code>admin@sonardespierto.org</code>) y una <strong>contraseña temporal</strong>. También queda en el archivo <code>CREDENCIALES_INICIALES.txt</code> de la carpeta de datos.</li>
+    <li>Entra con esos datos. El sistema te pedirá <strong>cambiar la contraseña</strong> por una propia: de 8 a 72 caracteres, con al menos una letra y un número. Al cambiarla, el archivo de credenciales se borra solo.</li>
+    <li>Ve a <strong>Mi perfil</strong> y escribe tu nombre real y tu teléfono.</li>
+    <li>Haz tu primer respaldo: <strong>Respaldos → Respaldar ahora</strong>.</li>
+  </ol>
+  <p>La sesión dura 8 horas y se cierra al cerrar el navegador. En una computadora compartida, usa siempre <strong>Cerrar sesión</strong> (abajo del menú).</p>
+
+  <h2 id="cuentas">5. Cuentas del personal y permisos</h2>
+  <h3>Pedir una cuenta (personal)</h3>
+  <ol class="steps">
+    <li>En la pantalla de inicio de sesión: <em>¿No tienes cuenta? Solicítala aquí</em>.</li>
+    <li>Llena tus datos, elige tu contraseña, marca los módulos con los que vas a colaborar y acepta el compromiso de confidencialidad.</li>
+    <li>Espera la aprobación. Mientras tanto, al intentar entrar verás “Tu solicitud de cuenta está pendiente”.</li>
+  </ol>
+  <h3>Aprobar, crear y administrar cuentas (administrador)</h3>
+  <ul>
+    <li>Cuando hay solicitudes, el menú muestra un número junto a <strong>Usuarios</strong>. Entra a <em>Usuarios → Solicitudes → Revisar solicitud</em>, elige el rol y los módulos y presiona <em>Aprobar cuenta</em> (o <em>Rechazar</em> con un motivo).</li>
+    <li><em>Usuarios → Nuevo usuario</em> crea una cuenta con una <strong>contraseña temporal que se muestra una sola vez</strong>: cópiala y entrégala en persona.</li>
+    <li><em>Restablecer contraseña</em> genera otra temporal si alguien la olvidó.</li>
+    <li>Si alguien deja el equipo: <em>Desactivar</em>. Pierde el acceso de inmediato en todas las computadoras y se conserva su historial.</li>
+  </ul>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Módulo</th><th>Qué permite</th></tr></thead>
+    <tbody>
+      <tr><td>Voluntarios</td><td>Registro de voluntarios, contacto de emergencia, talla y área.</td></tr>
+      <tr><td>Beneficiarios</td><td>Niñas y niños, escuelas y tutores. <strong>Datos de menores</strong>: asígnalo solo a quien lo necesite.</td></tr>
+      <tr><td>Eventos</td><td>Crear y abrir eventos (Navidad, Día del Niño) y asignarles voluntarios.</td></tr>
+      <tr><td>Cartas de Navidad</td><td>Cartas, padrinos, estatus del regalo, fotos y búsqueda por código.</td></tr>
+      <tr><td>Calendario</td><td>Juntas, capacitaciones, acopios y actividades.</td></tr>
+      <tr><td>Inventario</td><td>Insumos y mobiliario por centro de acopio.</td></tr>
+      <tr><td>Reportes</td><td>Indicadores por evento y exportación a Excel (solo cantidades, sin nombres).</td></tr>
+    </tbody>
+  </table></div>
+  <p><strong>Bitácora</strong> (solo administradores) registra quién entró, quién cambió cuentas y permisos y quién creó, modificó, exportó, respaldó o restauró datos. Se filtra por fechas, acción y usuario.</p>
+
+  <h2 id="personas">6. Niñas y niños, escuelas, tutores y voluntarios</h2>
+  <ul>
+    <li>Registra primero la <strong>escuela</strong> y al <strong>tutor</strong> responsable (profesora, director o líder comunitario). Después, <em>Niños → Registrar niña o niño</em>. “Guardar y registrar otro” conserva la escuela, el grado, el grupo y el tutor para capturar un grupo completo.</li>
+    <li>Marca <em>Cuenta con la autorización firmada</em> solo cuando tengas el papel firmado por la madre, padre o tutor legal. <strong>Sin autorización no se puede registrar su carta.</strong></li>
+    <li>Si alguien ya estaba registrado (mismo nombre completo y fecha de nacimiento), el sistema lo avisa y te lleva a su ficha.</li>
+    <li>Nada se borra: <em>Dar de baja</em> oculta el registro y se puede reactivar (filtro Estado → Dados de baja).</li>
+    <li><em>Exportar CSV</em> descarga una lista para Excel y queda en la bitácora. Guarda esos archivos en un lugar seguro y bórralos cuando ya no los necesites.</li>
+    <li>En Voluntarios, el recuadro <em>Tallas de playera</em> dice cuántas playeras pedir según los filtros.</li>
+  </ul>
+
+  <h2 id="eventos">7. Eventos</h2>
+  <ul>
+    <li><em>Eventos → Nuevo evento</em>: nombre, tipo (Navidad, Día del Niño u otro), fecha, lugar y un <strong>prefijo</strong> de 3 a 10 letras o números (por ejemplo <code>NAV26</code>) que se usa en el código de las cartas. Para Navidad también se fija el máximo de cartas por padrino (3 si no se cambia).</li>
+    <li>Un evento avanza así: <span class="badge">Borrador</span> → <span class="badge">Abierto</span> → <span class="badge">En curso</span> → <span class="badge">Cerrado</span>. Solo los eventos abiertos o en curso reciben cartas nuevas; uno cerrado ya no se modifica.</li>
+    <li>En el detalle del evento se agregan voluntarios, con su área y estatus (postulado, confirmado, rechazado o cancelado).</li>
+  </ul>
+
+  <h2 id="cartas">8. Cartas de Navidad</h2>
+  <ol class="steps">
+    <li><em>Cartas → Registrar carta</em>: elige el evento y a la niña o niño (con autorización) y escribe su deseo principal. El sistema le asigna un código como <code>NAV26-000123</code>: escríbelo en la carta de papel.</li>
+    <li><em>Asignar padrino</em>: el voluntario que comprará el regalo (hasta el máximo del evento). Si dos personas asignan la misma carta a la vez, solo una lo logra y la otra recibe un aviso.</li>
+    <li>Cuando llega el regalo: <em>Marcar regalo recibido</em>. El día del evento: <em>Marcar entregado</em>.</li>
+    <li><em>Búsqueda por código</em> sirve en la mesa de recepción: escribe o escanea el código y marca el paso siguiente con un clic.</li>
+  </ol>
+  <p>Cada carta guarda su <strong>historial</strong> completo (quién cambió qué y cuándo). Puedes agregar una foto de la carta desde el celular o la computadora; la foto se guarda sin datos de ubicación y solo la ven quienes tienen el módulo Cartas. <em>Liberar carta</em> quita al padrino y la regresa a pendiente.</p>
+
+  <h2 id="calendario">9. Calendario</h2>
+  <ul>
+    <li><em>Nueva actividad</em>: junta, capacitación, acopio, evento u otra, con fecha, hora, lugar y una persona responsable del personal; opcionalmente ligada a un evento y con voluntarios.</li>
+    <li>Vistas Mes, Semana y Agenda. Para <strong>mover</strong> una actividad, arrástrala a otro día u hora, o ábrela y usa <em>Editar o mover</em>.</li>
+    <li>Si la persona responsable ya tiene otra actividad a esa hora aparece el aviso <strong>Traslape de horario</strong>: revisa o marca <em>Guardar de todos modos</em> (queda en la bitácora).</li>
+    <li>Una actividad no se borra: se <strong>cancela</strong> con un motivo o se marca como realizada.</li>
+  </ul>
+
+  <h2 id="inventario">10. Inventario</h2>
+  <ul>
+    <li>Primero registra los <strong>centros de acopio</strong> en <em>Centros y categorías</em>. Las categorías traen seis sugeridas que puedes renombrar.</li>
+    <li><em>Nuevo artículo</em>: nombre, categoría, unidad y, si quieres, una existencia mínima para recibir un aviso.</li>
+    <li><em>Registrar movimiento</em>: <strong>Entrada</strong> (donación, compra…), <strong>Salida</strong> (uso en evento, entrega, merma…) o <strong>Traspaso</strong> entre centros, con varios artículos por captura. No se puede sacar más de lo que hay.</li>
+    <li>Un movimiento no se edita ni se borra: si hubo un error, ábrelo y usa <em>Anular</em>. El <strong>kardex</strong> de cada artículo muestra sus movimientos con el saldo y se exporta a CSV.</li>
+  </ul>
+  <p class="muted">Los regalos de las cartas se siguen en Cartas, no en el inventario.</p>
+
+  <h2 id="reportes">11. Reportes</h2>
+  <ul>
+    <li>Arriba eliges el evento (sale primero el abierto más próximo). Las cifras se calculan al momento y se actualizan cada minuto o con <em>Actualizar</em>.</li>
+    <li><strong>Pendientes</strong> avisa, por ejemplo, cuántas niñas y niños no tienen carta o cuántos regalos no han llegado; <em>Ver</em> abre la lista ya filtrada (si tienes ese módulo).</li>
+    <li>Gráficas de cartas por estatus, avance semanal, por escuela, voluntarios, actividades e inventario, y un comparativo entre eventos.</li>
+    <li><em>Exportar a Excel</em> descarga un archivo con una hoja por tema. Solo trae cantidades, no nombres, y queda en la bitácora.</li>
+  </ul>
+
+  <h2 id="respaldos">12. Respaldos y restauración</h2>
+  <p>Un <strong>respaldo</strong> es un archivo <code>sonar-….zip</code> con <strong>toda</strong> la información: la base de datos y las fotos de las cartas. No lleva contraseñas en texto, la configuración ni la clave de las sesiones.</p>
+  <h3>Respaldos automáticos</h3>
+  <ul>
+    <li>Mientras el sistema está abierto, hace <strong>un respaldo automático al día</strong> (al minuto de abrirlo, si ese día aún no hay uno).</li>
+    <li>Se guardan en la carpeta <code>backups</code> de la carpeta de datos. Se conservan los <strong>14 automáticos</strong> más recientes y los 30 manuales más recientes; los más viejos se borran solos.</li>
+    <li>Antes de una <strong>actualización</strong> del programa y antes de cada <strong>restauración</strong> se guarda además un respaldo de seguridad.</li>
+  </ul>
+  <h3>Respaldar ahora</h3>
+  <p>Menú <strong>Respaldos → Respaldar ahora</strong> (administradores), o el acceso <em>Respaldar ahora</em> del menú Inicio de Windows (funciona con el sistema abierto o cerrado). Hazlo antes de cambios grandes y al terminar cada jornada importante.</p>
+  <div class="warn"><strong>Guarda una copia fuera de la computadora.</strong> Si la computadora se descompone o se pierde, los respaldos de su disco se pierden con ella. Al menos una vez por semana: <em>Respaldos → Descargar</em> el más reciente y cópialo a una USB o a una carpeta en la nube de la asociación. También puedes configurar una <strong>copia extra automática</strong> con <code>BACKUP_COPY_DIR</code> (ver <a href="#config">Configuración</a>). El respaldo contiene datos de menores: guárdalo en un lugar protegido.</div>
+  <h3>Restaurar un respaldo</h3>
+  <ol class="steps">
+    <li><strong>Respaldos</strong> → en la lista, <em>Restaurar</em> junto al respaldo que quieres. Para un archivo de una USB u otra computadora usa <em>Restaurar desde un archivo</em>.</li>
+    <li>Escribe <strong>RESTAURAR</strong> para confirmar.</li>
+    <li>El sistema revisa el archivo (que no esté dañado, que sea de Soñar Despierto y de esta versión o una anterior), guarda un respaldo <em>Antes de restaurar</em>, reemplaza los datos y <strong>cierra todas las sesiones</strong>.</li>
+    <li>Vuelve a entrar con la contraseña que tenías <strong>en la fecha del respaldo</strong>.</li>
+  </ol>
+  <div class="tip"><strong>¿Te equivocaste de respaldo?</strong> Restaura el que dice <em>Antes de restaurar</em>: deja todo como estaba justo antes.</div>
+  <h3>Si el sistema no abre (restauración de emergencia)</h3>
+  <ol class="steps">
+    <li>Cierra la ventana negra si está abierta.</li>
+    <li>Abre la carpeta del programa (clic derecho en el acceso directo → <em>Abrir la ubicación del archivo</em>).</li>
+    <li>Arrastra el archivo <code>sonar-….zip</code> sobre <code>Restaurar.bat</code> y escribe <strong>RESTAURAR</strong> cuando lo pida.</li>
+  </ol>
+  <p class="muted">En una computadora nueva: instala el programa, ábrelo una vez, ciérralo y restaura con cualquiera de los dos métodos.</p>
+
+  <h2 id="lan">13. Usar el sistema desde otras computadoras (modo LAN)</h2>
+  <p>Una sola computadora (la <strong>anfitriona</strong>) tiene el programa y los datos. Las demás computadoras, tabletas o celulares de la <strong>misma red de la oficina</strong> entran con el navegador; no instalan nada.</p>
+  <h3>Activar</h3>
+  <ol class="steps">
+    <li>En la anfitriona, cierra el sistema (cierra la ventana negra).</li>
+    <li>Menú Inicio → <em>Configuración (config.env)</em>. Cambia <code>LAN_MODE=false</code> por <code>LAN_MODE=true</code> y guarda.</li>
+    <li>Abre el sistema. Si Windows pregunta por el Firewall, marca <strong>solo “Redes privadas”</strong> y acepta.</li>
+    <li>La ventana negra muestra <em>Desde otras PCs de la red</em>, por ejemplo <code>http://192.168.1.25:8765</code>. Escribe esa dirección en el navegador de las otras computadoras y guárdala en Favoritos.</li>
+  </ol>
+  <h3>Recomendaciones</h3>
+  <ul>
+    <li>La red de Windows de la anfitriona debe estar como <strong>Red privada</strong> (Configuración → Red e Internet → Propiedades de la red).</li>
+    <li>Pide a quien administra el módem que le dé a la anfitriona una <strong>IP fija</strong> (reserva DHCP); si no, la dirección puede cambiar y habrá que consultarla en la ventana negra.</li>
+    <li>La anfitriona debe estar encendida y con el sistema abierto mientras otros trabajan. Desactiva la suspensión automática en horario de trabajo.</li>
+    <li>También se puede entrar con el nombre de la computadora: <code>http://NOMBRE-DE-LA-PC:8765</code>.</li>
+    <li>Considera cerrar el registro de cuentas (<code>REGISTRATION_ENABLED=false</code>) y que el administrador cree las cuentas.</li>
+  </ul>
+  <div class="warn"><strong>Solo en la red de la oficina.</strong> Nunca actives el modo LAN en redes Wi-Fi públicas (cafeterías, hoteles, plazas). En la red local la información viaja sin cifrar: no lo uses si la red de la oficina la comparten personas ajenas a la asociación.</div>
+  <h3>Si otra computadora no puede entrar</h3>
+  <ul>
+    <li>Comprueba que ambas estén en la misma red (el mismo Wi-Fi o el mismo módem).</li>
+    <li>Revisa que la ventana negra diga “Desde otras PCs de la red” (si dice “desactivado”, falta <code>LAN_MODE=true</code>).</li>
+    <li>Firewall de Windows: busca “Permitir una aplicación a través del Firewall” y verifica que <em>Node.js</em> tenga marcada la casilla <em>Privada</em>.</li>
+    <li>Si aparece “Dirección no permitida”, entra con la IP numérica o agrega el nombre en <code>ALLOWED_HOSTS</code>.</li>
+  </ul>
+
+  <h2 id="demo">14. Practicar con la demostración</h2>
+  <p>El acceso <strong>Soñar Despierto (demostración)</strong> (opcional en el instalador) abre una copia aparte con datos <strong>ficticios</strong>: 40 niñas y niños, 18 voluntarios, 3 eventos, cartas en todos los estatus, actividades e inventario. Se abre en <code>http://localhost:8775</code>, muestra una franja amarilla “Modo demostración” y <strong>nunca toca los datos reales</strong>.</p>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Cuenta</th><th>Correo</th><th>Puede usar</th></tr></thead>
+    <tbody>
+      <tr><td>Ana (administradora)</td><td><code>admin@demo.sonardespierto.org</code></td><td>Todo</td></tr>
+      <tr><td>Laura</td><td><code>laura@demo.sonardespierto.org</code></td><td>Solo Reportes</td></tr>
+      <tr><td>Carlos</td><td><code>carlos@demo.sonardespierto.org</code></td><td>Eventos y Cartas</td></tr>
+      <tr><td>María</td><td><code>maria@demo.sonardespierto.org</code></td><td>Voluntarios y Beneficiarios</td></tr>
+      <tr><td>Pedro</td><td><code>pedro@demo.sonardespierto.org</code></td><td>Calendario e Inventario</td></tr>
+    </tbody>
+  </table></div>
+  <p>La contraseña de todas es <code>Demo2026</code>. Para empezar de cero, cierra la demostración y borra la carpeta <code>%LOCALAPPDATA%\SonarDespierto-Demo</code>.</p>
+
+  <h2 id="config">15. Configuración (config.env)</h2>
+  <p>Archivo de texto en la carpeta de datos (menú Inicio → <em>Configuración (config.env)</em>). Se crea al abrir el sistema por primera vez. <strong>Cierra el sistema, edita, guarda y vuelve a abrirlo</strong> para aplicar los cambios.</p>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Opción</th><th>Para qué</th><th>Valor inicial</th></tr></thead>
+    <tbody>
+      <tr><td><code>PORT</code></td><td>Puerto de la dirección <code>http://localhost:PUERTO</code>. Si está ocupado se prueba el siguiente.</td><td>8765</td></tr>
+      <tr><td><code>LAN_MODE</code></td><td><code>true</code> para entrar desde otras computadoras de la oficina.</td><td>false</td></tr>
+      <tr><td><code>REGISTRATION_ENABLED</code></td><td><code>false</code> para que nadie pueda solicitar cuenta; solo el administrador las crea.</td><td>true</td></tr>
+      <tr><td><code>BACKUP_AUTO</code></td><td>Respaldo automático diario.</td><td>true</td></tr>
+      <tr><td><code>BACKUP_KEEP</code></td><td>Cuántos respaldos automáticos se conservan (1 a 365).</td><td>14</td></tr>
+      <tr><td><code>BACKUP_COPY_DIR</code></td><td>Carpeta donde se copia además cada respaldo: otra unidad, una USB que siempre esté conectada o una carpeta sincronizada de la nube (por ejemplo <code>D:\Respaldos Soñar</code>). Vacía = sin copia extra.</td><td>vacía</td></tr>
+      <tr><td><code>ALLOWED_HOSTS</code></td><td>Nombres extra con los que se puede entrar al sistema, separados por comas (solo si aparece “Dirección no permitida”).</td><td>vacía</td></tr>
+      <tr><td><code>SESSION_HOURS</code></td><td>Horas que dura una sesión (1 a 24).</td><td>8</td></tr>
+    </tbody>
+  </table></div>
+  <div class="warn">La base de datos <strong>nunca</strong> debe estar dentro de OneDrive, Dropbox ni otra carpeta sincronizada: puede dañarse. Los <em>respaldos</em> sí pueden copiarse a la nube con <code>BACKUP_COPY_DIR</code>, porque son archivos cerrados.</div>
+
+  <h2 id="privacidad">16. Seguridad y privacidad</h2>
+  <ul>
+    <li>Cada persona usa <strong>su propia cuenta</strong>; no compartan contraseñas. Desactiva las cuentas de quien deja el equipo.</li>
+    <li>Asigna <em>Beneficiarios</em> (datos de menores) solo a quien lo necesite. Captura solo los datos necesarios.</li>
+    <li>Las exportaciones (CSV, Excel) y los respaldos contienen datos personales: guárdalos en lugares protegidos y bórralos cuando ya no sirvan. Todo queda en la bitácora.</li>
+    <li>Cierra sesión en computadoras compartidas y bloquea la computadora anfitriona (<kbd>Windows</kbd> + <kbd>L</kbd>) cuando te levantes.</li>
+    <li>Protege la cuenta de Windows de la anfitriona con contraseña: quien entre a esa cuenta puede llegar a la carpeta de datos.</li>
+    <li>Revisa la bitácora de vez en cuando (intentos de acceso fallidos, exportaciones, restauraciones).</li>
+  </ul>
+
+  <h2 id="problemas">17. Problemas frecuentes</h2>
+  <h3>Olvidé la contraseña</h3>
+  <p>Si eres del personal, pide al administrador <em>Usuarios → Restablecer contraseña</em>. Si es la del <strong>único administrador</strong>:</p>
+  <ol class="steps">
+    <li>Cierra el sistema.</li>
+    <li>Abre la carpeta del programa (clic derecho en el acceso directo → <em>Abrir la ubicación del archivo</em>), escribe <code>cmd</code> en la barra de direcciones de la carpeta y presiona <kbd>Enter</kbd>.</li>
+    <li>Escribe <code>SonarDespierto.bat --reset-admin</code> y presiona <kbd>Enter</kbd>. Aparece una contraseña temporal (también en <code>CREDENCIALES_INICIALES.txt</code> de la carpeta de datos).</li>
+  </ol>
+  <h3>Otros</h3>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Lo que pasa</th><th>Qué hacer</th></tr></thead>
+    <tbody>
+      <tr><td>La ventana negra se cierra sola o muestra un error</td><td>Lee el mensaje. Si dice que la base de datos es de una versión más nueva, instala la versión más reciente del programa. Revisa también <code>logs\sonar.log</code> en la carpeta de datos.</td></tr>
+      <tr><td>“No se pudo conectar con el servidor”</td><td>La ventana negra está cerrada o la anfitriona se apagó. Vuelve a abrir el sistema.</td></tr>
+      <tr><td>El navegador muestra otra dirección o puerto</td><td>El puerto 8765 estaba ocupado y se usó el siguiente: usa la dirección que dice la ventana negra.</td></tr>
+      <tr><td>“Tu sesión expiró”</td><td>Pasaron 8 horas, un administrador restauró un respaldo o cambió tu cuenta. Vuelve a entrar.</td></tr>
+      <tr><td>El aviso “El último respaldo tiene más de 2 días”</td><td>El sistema no se ha abierto en esos días o falló el respaldo: presiona <em>Respaldar ahora</em>.</td></tr>
+      <tr><td>“No se pudo copiar a la carpeta extra”</td><td>La USB o la unidad de <code>BACKUP_COPY_DIR</code> no está conectada. El respaldo principal sí se guardó.</td></tr>
+      <tr><td>Windows protegió su PC (al instalar)</td><td><em>Más información → Ejecutar de todas formas</em>.</td></tr>
+    </tbody>
+  </table></div>
+
+  <h2 id="actualizar">18. Actualizar o desinstalar</h2>
+  <ul>
+    <li><strong>Actualizar:</strong> ejecuta el instalador de la versión nueva sobre la anterior. Si el sistema está abierto, el instalador pedirá cerrarlo. Al abrirlo, si la base necesita cambios, primero se guarda un respaldo <em>Antes de actualizar</em>. Los datos y la configuración se conservan.</li>
+    <li><strong>Desinstalar:</strong> menú Inicio → <em>Desinstalar Soñar Despierto</em>. Se quita el programa pero <strong>se conservan los datos</strong> en <code>%LOCALAPPDATA%\SonarDespierto</code>. Si de verdad ya no los necesitas, guarda antes una copia de la carpeta <code>backups</code> y bórrala a mano.</li>
+    <li><strong>Cambiar de computadora:</strong> descarga un respaldo, instala el programa en la nueva, ábrelo una vez y restaura el respaldo.</li>
+  </ul>
+
+  <footer class="muted">
+    <p>Soñar Despierto Veracruz · Sistema de Gestión 1.0 · Manual pendiente de validación por la directiva.</p>
+  </footer>
+</div>
+</body>
+</html>
