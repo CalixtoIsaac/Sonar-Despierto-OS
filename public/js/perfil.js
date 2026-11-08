@@ -1,5 +1,6 @@
 /**
- * Vista "Mi perfil": nombre, apellidos y teléfono editables; correo, rol y módulos de solo lectura.
+ * Vista "Mi perfil": nombre, apellidos y teléfono editables; color de los botones principales;
+ * correo, rol y módulos de solo lectura.
  */
 const Perfil = (() => {
   const F = () => Components.form;
@@ -8,6 +9,60 @@ const Perfil = (() => {
     { name: 'last_name', label: 'Apellidos', required: true, max: 120, autocomplete: 'family-name' },
     { name: 'phone', label: 'Teléfono', type: 'tel', inputmode: 'tel', hint: '10 dígitos. Déjalo vacío para borrarlo.', autocomplete: 'tel' }
   ];
+  // Mismo catálogo que ACCENT_COLORS (lib/catalogs.js); los tonos están en css/theme.css
+  const ACCENTS = [
+    ['CORAL', 'Coral', 'predeterminado'], ['NARANJA', 'Naranja'], ['ROSA', 'Rosa'], ['MORADO', 'Morado'],
+    ['AZUL', 'Azul'], ['TURQUESA', 'Turquesa'], ['VERDE', 'Verde'], ['GRAFITO', 'Grafito']
+  ];
+
+  function accentPicker(selected) {
+    const current = ACCENTS.some(([key]) => key === selected) ? selected : 'CORAL';
+    return `
+      <fieldset class="accent-picker" id="accentPicker">
+        <legend>Color de los botones principales</legend>
+        <div class="accent-grid">
+          ${ACCENTS.map(([key, label, note]) => `
+            <label class="accent-option" data-accent="${key}">
+              <input type="radio" name="accent_color" value="${key}" ${key === current ? 'checked' : ''}>
+              <span class="accent-dot" aria-hidden="true">${UI.icon('check')}</span>
+              <span class="accent-label">${UI.escape(label)}${note ? `<small>${UI.escape(note)}</small>` : ''}</span>
+            </label>`).join('')}
+        </div>
+        <p class="muted accent-hint">El cambio se ve al instante y se guarda en tu cuenta: lo verás igual en cualquier equipo donde inicies sesión.</p>
+      </fieldset>
+      <div class="accent-preview" aria-hidden="true">
+        <span class="muted">Vista previa:</span>
+        <span class="btn btn-primary">Guardar cambios</span>
+        <span class="badge accent-preview-soft">Seleccionado</span>
+      </div>`;
+  }
+
+  function bindAccent(container, ctx) {
+    const picker = container.querySelector('#accentPicker');
+    let saved = ctx.user.accent_color || 'CORAL';
+    let pending = Promise.resolve();
+    picker.addEventListener('change', (e) => {
+      if (e.target.name !== 'accent_color') return;
+      const value = e.target.value;
+      SDTheme.setAccent(value);                       // vista previa inmediata
+      pending = pending.then(async () => {
+        if (value === saved) return;
+        try {
+          const out = await UI.api('/auth/me', { method: 'PATCH', body: { accent_color: value } });
+          saved = out.user.accent_color;
+          ctx.user = out.user;
+          ctx.onUserChange({ user: out.user });
+          UI.toast('Color guardado', 'success');
+        } catch (err) {
+          // Se regresa al color que sí quedó guardado
+          SDTheme.setAccent(saved);
+          const back = picker.querySelector(`input[value="${saved}"]`);
+          if (back) back.checked = true;
+          UI.toast(err.message, 'error');
+        }
+      });
+    });
+  }
 
   function readOnly(user) {
     const modules = user.modules.length
@@ -43,10 +98,15 @@ const Perfil = (() => {
         </form>
       </section>
       <section class="card panel narrow">
+        <h3 class="panel-title">Apariencia</h3>
+        ${accentPicker(user.accent_color)}
+      </section>
+      <section class="card panel narrow">
         <h3 class="panel-title">Tu cuenta</h3>
         ${readOnly(user)}
       </section>`;
 
+    bindAccent(container, ctx);
     const form = container.querySelector('#profileForm');
     const alertBox = container.querySelector('#profileAlert');
     form.addEventListener('submit', async (e) => {

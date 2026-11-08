@@ -40,3 +40,31 @@ test('con contraseña temporal → 403 PASSWORD_CHANGE_REQUIRED', async () => {
   assert.equal(r.status, 403);
   assert.equal(r.body.code, 'PASSWORD_CHANGE_REQUIRED');
 });
+
+test('color de los botones: se guarda por usuario, no se audita y valida el catálogo', async () => {
+  const { user, password } = h.makeUser();
+  const token = await h.login(user.email, password);
+  const me = await h.request('GET', '/api/auth/me', { token });
+  assert.equal(me.body.user.accent_color, 'CORAL');
+
+  const auditBefore = h.auditRows().length;
+  const r = await patch(token, { accent_color: 'azul' });
+  assert.equal(r.status, 200);
+  assert.equal(r.body.user.accent_color, 'AZUL');
+  assert.equal(h.auditRows().length, auditBefore, 'una preferencia visual no va a la bitácora');
+  assert.equal((await h.request('GET', '/api/auth/me', { token })).body.user.accent_color, 'AZUL');
+
+  // Otro usuario conserva el suyo
+  const other = h.makeUser();
+  const otherToken = await h.login(other.user.email, other.password);
+  assert.equal((await h.request('GET', '/api/auth/me', { token: otherToken })).body.user.accent_color, 'CORAL');
+
+  const bad = await patch(token, { accent_color: 'FUCSIA' });
+  assert.equal(bad.status, 422);
+  assert.deepEqual(bad.body.details, [{ field: 'accent_color', message: 'Elige uno de los colores disponibles.' }]);
+
+  // null o CORAL regresan al predeterminado
+  assert.equal((await patch(token, { accent_color: null })).body.user.accent_color, 'CORAL');
+  await patch(token, { accent_color: 'VERDE' });
+  assert.equal((await patch(token, { accent_color: 'CORAL' })).body.user.accent_color, 'CORAL');
+});

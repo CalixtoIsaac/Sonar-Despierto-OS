@@ -6,6 +6,9 @@
  * - Usa la preferencia guardada; si no hay, la del sistema operativo.
  * - Cualquier botón con [data-theme-toggle] alterna el tema.
  * - Emite el evento "themechange" en window.
+ * - Color de los botones principales: lo elige cada usuario en "Mi perfil" (accent_color de UserMe).
+ *   Se lee de la sesión guardada para pintarlo desde el primer cuadro; app.js lo actualiza con
+ *   SDTheme.setAccent() cada vez que llega el usuario del servidor. Sin sesión (login) → coral.
  */
 (function () {
   var KEY = 'sd.theme';
@@ -52,6 +55,23 @@
 
   // Aplicación inmediata (antes de pintar la página)
   root.setAttribute('data-theme', stored() === 'dark' || stored() === 'light' ? stored() : systemTheme());
+
+  // ---------- Color de los botones principales ----------
+  function sessionAccent() {
+    try {
+      var user = JSON.parse(sessionStorage.getItem('sd.user'));
+      return user && user.accent_color;
+    } catch (e) { return null; }
+  }
+  function setAccent(accent) {
+    if (typeof accent === 'string' && /^[A-Z]{3,16}$/.test(accent) && accent !== 'CORAL') {
+      root.setAttribute('data-accent', accent);
+    } else {
+      root.removeAttribute('data-accent');
+    }
+  }
+  setAccent(sessionAccent());
+  window.SDTheme = { setAccent: setAccent };
 
   document.addEventListener('click', function (e) {
     var btn = e.target.closest && e.target.closest('[data-theme-toggle]');

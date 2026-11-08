@@ -10,7 +10,7 @@
 |---|---|---|---|
 | P01 Login | `/` | 🌐 | Enlace "¿No tienes cuenta? **Solicítala aquí**" si `REGISTRATION_ENABLED=true`; aviso informativo (amarillo) si la cuenta está pendiente |
 | P02 Solicitud de cuenta del personal (reinterpreta "Registro de voluntario") | `/registro` | 🌐 | Datos, contraseña con indicador de seguridad, selector de módulos (con insignia "Datos de menores" en Beneficiarios), nota y compromiso de confidencialidad → "¡Solicitud enviada!" |
-| P03 Mi perfil | `/app#perfil` | 🔑 | Nombre, apellidos y teléfono editables; correo, rol y módulos de solo lectura |
+| P03 Mi perfil | `/app#perfil` | 🔑 | Nombre, apellidos y teléfono editables; *Apariencia*: color de los botones principales (8 opciones, vista previa al instante, se guarda en la cuenta); correo, rol y módulos de solo lectura |
 | P04 Cambiar contraseña | `/app#cambiar-contrasena` | 🔑 | Obligatoria con contraseña temporal |
 | Inicio | `/app#inicio` | 🔑 | Módulos permitidos; para ADMIN, aviso "Tienes N solicitudes de cuenta por revisar" |
 | P10 Usuarios | `/app#usuarios`, `/app#usuario/<id>` | ADMIN | Pestañas Solicitudes / Usuarios; revisar, aprobar, rechazar, eliminar solicitudes; alta con contraseña temporal; editar rol y módulos; restablecer; activar/desactivar; detalle con actividad. Píldora con el número de pendientes en el menú |

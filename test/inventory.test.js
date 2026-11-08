@@ -44,7 +44,7 @@ test('la migración deja categorías sugeridas (catálogo editable)', () => {
   require('../lib/migrations').migrate(db);
   const names = db.prepare('SELECT name FROM inventory_categories ORDER BY id').all().map((r) => r.name);
   assert.deepEqual(names, [...require('../lib/catalogs').INVENTORY_DEFAULT_CATEGORIES]);
-  assert.equal(MIGRATIONS[MIGRATIONS.length - 1].version, 6);
+  assert.ok(MIGRATIONS.some((m) => m.version === 6), 'la migración 6 crea el inventario');
   db.close();
 });
 

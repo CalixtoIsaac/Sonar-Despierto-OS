@@ -72,6 +72,7 @@
   // ---------- Usuario y menú ----------
   function renderUser() {
     if (!user) return;
+    if (window.SDTheme) SDTheme.setAccent(user.accent_color);
     const fullName = `${user.first_name} ${user.last_name}`.trim();
     $('userName').textContent = fullName;
     $('userRole').textContent = Access.ROLE_LABEL[user.role] || user.role;
