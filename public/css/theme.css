@@ -90,3 +90,74 @@
   --shadow-lg: 0 24px 48px -12px rgba(0, 0, 0, 0.7);
   --shadow-soft: 0 10px 30px -14px rgba(0, 0, 0, 0.7);
 }
+
+/*
+ * Color de los botones principales elegido por cada usuario (Mi perfil → Apariencia).
+ * theme.js pone data-accent en <html>; sin atributo se usa el coral de arriba. El selector también
+ * aplica a cualquier elemento con data-accent (las muestras de color del perfil). Los tonos están
+ * elegidos para que el texto blanco del botón tenga al menos el contraste del coral original.
+ */
+:root[data-accent="CORAL"], [data-accent="CORAL"] {
+  --primary: oklch(0.637 0.215 25);  --primary-hover: oklch(0.58 0.2 25);
+  --primary-soft: oklch(0.955 0.03 25);  --primary-text: oklch(0.53 0.19 25);
+}
+:root[data-theme="dark"][data-accent="CORAL"], [data-theme="dark"] [data-accent="CORAL"] {
+  --primary: oklch(0.66 0.2 25);  --primary-hover: oklch(0.6 0.2 25);
+  --primary-soft: oklch(0.3 0.06 25);  --primary-text: oklch(0.78 0.13 25);
+}
+:root[data-accent="NARANJA"], [data-accent="NARANJA"] {
+  --primary: oklch(0.6 0.15 48);  --primary-hover: oklch(0.545 0.15 48);
+  --primary-soft: oklch(0.955 0.03 48);  --primary-text: oklch(0.52 0.14 48);
+}
+:root[data-theme="dark"][data-accent="NARANJA"], [data-theme="dark"] [data-accent="NARANJA"] {
+  --primary: oklch(0.62 0.15 48);  --primary-hover: oklch(0.56 0.15 48);
+  --primary-soft: oklch(0.3 0.06 48);  --primary-text: oklch(0.8 0.12 48);
+}
+:root[data-accent="ROSA"], [data-accent="ROSA"] {
+  --primary: oklch(0.59 0.21 355);  --primary-hover: oklch(0.535 0.21 355);
+  --primary-soft: oklch(0.955 0.03 355);  --primary-text: oklch(0.52 0.19 355);
+}
+:root[data-theme="dark"][data-accent="ROSA"], [data-theme="dark"] [data-accent="ROSA"] {
+  --primary: oklch(0.62 0.2 355);  --primary-hover: oklch(0.56 0.2 355);
+  --primary-soft: oklch(0.3 0.06 355);  --primary-text: oklch(0.8 0.13 355);
+}
+:root[data-accent="MORADO"], [data-accent="MORADO"] {
+  --primary: oklch(0.53 0.2 300);  --primary-hover: oklch(0.475 0.2 300);
+  --primary-soft: oklch(0.955 0.03 300);  --primary-text: oklch(0.5 0.19 300);
+}
+:root[data-theme="dark"][data-accent="MORADO"], [data-theme="dark"] [data-accent="MORADO"] {
+  --primary: oklch(0.6 0.18 300);  --primary-hover: oklch(0.54 0.18 300);
+  --primary-soft: oklch(0.3 0.06 300);  --primary-text: oklch(0.78 0.12 300);
+}
+:root[data-accent="AZUL"], [data-accent="AZUL"] {
+  --primary: oklch(0.54 0.17 255);  --primary-hover: oklch(0.485 0.17 255);
+  --primary-soft: oklch(0.955 0.03 255);  --primary-text: oklch(0.5 0.16 255);
+}
+:root[data-theme="dark"][data-accent="AZUL"], [data-theme="dark"] [data-accent="AZUL"] {
+  --primary: oklch(0.6 0.16 255);  --primary-hover: oklch(0.54 0.16 255);
+  --primary-soft: oklch(0.3 0.06 255);  --primary-text: oklch(0.78 0.11 255);
+}
+:root[data-accent="TURQUESA"], [data-accent="TURQUESA"] {
+  --primary: oklch(0.55 0.09 200);  --primary-hover: oklch(0.495 0.09 200);
+  --primary-soft: oklch(0.955 0.03 200);  --primary-text: oklch(0.48 0.09 200);
+}
+:root[data-theme="dark"][data-accent="TURQUESA"], [data-theme="dark"] [data-accent="TURQUESA"] {
+  --primary: oklch(0.58 0.09 200);  --primary-hover: oklch(0.52 0.09 200);
+  --primary-soft: oklch(0.3 0.06 200);  --primary-text: oklch(0.8 0.09 200);
+}
+:root[data-accent="VERDE"], [data-accent="VERDE"] {
+  --primary: oklch(0.55 0.14 150);  --primary-hover: oklch(0.495 0.14 150);
+  --primary-soft: oklch(0.955 0.03 150);  --primary-text: oklch(0.48 0.12 150);
+}
+:root[data-theme="dark"][data-accent="VERDE"], [data-theme="dark"] [data-accent="VERDE"] {
+  --primary: oklch(0.57 0.14 150);  --primary-hover: oklch(0.51 0.14 150);
+  --primary-soft: oklch(0.3 0.06 150);  --primary-text: oklch(0.8 0.12 150);
+}
+:root[data-accent="GRAFITO"], [data-accent="GRAFITO"] {
+  --primary: oklch(0.42 0.02 260);  --primary-hover: oklch(0.365 0.02 260);
+  --primary-soft: oklch(0.955 0.01 260);  --primary-text: oklch(0.4 0.02 260);
+}
+:root[data-theme="dark"][data-accent="GRAFITO"], [data-theme="dark"] [data-accent="GRAFITO"] {
+  --primary: oklch(0.5 0.02 260);  --primary-hover: oklch(0.44 0.02 260);
+  --primary-soft: oklch(0.3 0.02 260);  --primary-text: oklch(0.82 0.02 260);
+}

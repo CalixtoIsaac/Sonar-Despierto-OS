@@ -7,11 +7,12 @@
  *   POST /api/auth/change-password  { current_password, new_password }  → 200 { token, expires_in, user }
  *   GET  /api/auth/registration-info  (público)                         → 200 { enabled }
  *   POST /api/auth/register         (público) RegisterRequest            → 201 RegisterResponse
- *   PATCH /api/auth/me              { first_name?, last_name?, phone? }  → 200 { user }
+ *   PATCH /api/auth/me              { first_name?, last_name?, phone?, accent_color? }  → 200 { user }
  */
 const express = require('express');
 
 const { requireAuth, requireAuthAllowPending } = require('../lib/auth');
+const { ACCENT_COLORS } = require('../lib/catalogs');
 const { getConfig } = require('../lib/config');
 const { validationError, wrap } = require('../lib/errors');
 const { isModule } = require('../lib/modules');
@@ -97,7 +98,8 @@ router.post('/register', wrap(async (req, res) => {
 const PROFILE_SCHEMA = {
   first_name: { type: 'text', required: true, max: 80 },
   last_name: { type: 'text', required: true, max: 120 },
-  phone: { type: 'phone' }
+  phone: { type: 'phone' },
+  accent_color: { type: 'enum', values: ACCENT_COLORS, message: 'Elige uno de los colores disponibles.' }
 };
 
 router.patch('/me', requireAuth, (req, res) => {

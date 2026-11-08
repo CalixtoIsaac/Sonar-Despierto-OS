@@ -37,6 +37,7 @@
 | `confidentiality_accepted_at` | TEXT ISO | aceptación del compromiso de confidencialidad |
 | `reviewed_by_id` | INTEGER → `users.id` `ON DELETE SET NULL` | ADMIN que aprobó o rechazó |
 | `reviewed_at`, `review_note` | TEXT | nota de aprobación o motivo del rechazo |
+| `accent_color` | TEXT NULL | migración 7. Color de los botones principales elegido en *Mi perfil* (`ACCENT_COLORS` de `lib/catalogs.js`); NULL = coral. Sin `CHECK` a propósito: es una preferencia visual cuyo catálogo puede crecer sin reconstruir la tabla; la API valida y un valor desconocido se trata como coral |
 
 **Máquina de estados de la cuenta (ADR-0008):**
 

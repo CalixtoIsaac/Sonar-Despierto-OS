@@ -11,6 +11,7 @@ const path = require('path');
 
 const { getConfig } = require('../lib/config');
 const { getDb, nowIso, toIso } = require('../lib/db');
+const { ACCENT_COLORS, DEFAULT_ACCENT_COLOR } = require('../lib/catalogs');
 const { AppError } = require('../lib/errors');
 const { getLogger } = require('../lib/logger');
 const { MODULE_KEYS, ACCOUNT_STATUS_LABELS, isRole, normalizeModules } = require('../lib/modules');
@@ -81,7 +82,8 @@ function toUserMe(user, db = getDb()) {
     is_active: Boolean(user.is_active),
     must_change_password: Boolean(user.must_change_password),
     modules: effectiveModules(user, db),
-    last_login_at: toIso(user.last_login_at)
+    last_login_at: toIso(user.last_login_at),
+    accent_color: ACCENT_COLORS.includes(user.accent_color) ? user.accent_color : DEFAULT_ACCENT_COLOR
   };
 }
 

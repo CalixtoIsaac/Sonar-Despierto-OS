@@ -4,6 +4,7 @@
  */
 const { getConfig } = require('../lib/config');
 const { getDb, nowIso } = require('../lib/db');
+const { DEFAULT_ACCENT_COLOR } = require('../lib/catalogs');
 const { AppError } = require('../lib/errors');
 const { RateLimiter } = require('../lib/rate-limit');
 const {
@@ -125,18 +126,27 @@ function register({ email, password, firstName, lastName, phone, requestedModule
   return { email: user.email, account_status: user.account_status, message: REGISTER_MESSAGE };
 }
 
-/** PATCH /api/auth/me — data: { first_name?, last_name?, phone? } ya validada. */
+/**
+ * PATCH /api/auth/me — data: { first_name?, last_name?, phone?, accent_color? } ya validada.
+ * El color de los botones es una preferencia visual: se guarda pero no se audita.
+ */
 function updateProfile(user, data, ip, db = getDb()) {
   const changed = ['first_name', 'last_name', 'phone']
     .filter((f) => data[f] !== undefined && (data[f] ?? null) !== (user[f] ?? null));
-  if (changed.length) {
+  // null o el predeterminado se guardan como NULL (sigue al color de la marca)
+  const accent = data.accent_color === undefined ? user.accent_color
+    : (data.accent_color === DEFAULT_ACCENT_COLOR ? null : data.accent_color);
+  const accentChanged = (accent ?? null) !== (user.accent_color ?? null);
+  if (changed.length || accentChanged) {
     db.transaction(() => {
-      db.prepare('UPDATE users SET first_name = ?, last_name = ?, phone = ?, updated_at = ? WHERE id = ?').run(
+      db.prepare('UPDATE users SET first_name = ?, last_name = ?, phone = ?, accent_color = ?, updated_at = ? WHERE id = ?').run(
         data.first_name ?? user.first_name, data.last_name ?? user.last_name,
-        data.phone === undefined ? user.phone : data.phone, nowIso(), user.id
+        data.phone === undefined ? user.phone : data.phone, accent ?? null, nowIso(), user.id
       );
-      recordAudit({ action: 'PROFILE_UPDATED', entity: 'users', entityId: user.id, userId: user.id,
-        detail: { changed }, ip }, db);
+      if (changed.length) {
+        recordAudit({ action: 'PROFILE_UPDATED', entity: 'users', entityId: user.id, userId: user.id,
+          detail: { changed }, ip }, db);
+      }
     })();
   }
   return users.getUser(user.id, db);

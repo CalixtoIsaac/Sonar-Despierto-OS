@@ -152,12 +152,12 @@ Respuesta paginada:
 | `POST /api/auth/login` `{ email, password }` | 🌐 | `200 { token, expires_in, user: UserMe }` | `401 INVALID_CREDENTIALS`, `403 ACCOUNT_PENDING`, `403 ACCOUNT_REJECTED`, `403 ACCOUNT_DISABLED`, `422`, `429 TOO_MANY_REQUESTS` |
 | `POST /api/auth/logout` | 🔑 | `204` (invalida el token en todas las PCs) | `401` |
 | `GET /api/auth/me` | 🔑 (aunque deba cambiar la contraseña) | `200 { user: UserMe }` | `401` |
-| `PATCH /api/auth/me` `{ first_name?, last_name?, phone? }` | 🔑 | `200 { user }` (audita `PROFILE_UPDATED`) | `401`, `403 PASSWORD_CHANGE_REQUIRED`, `422` (campo no permitido, cuerpo vacío) |
+| `PATCH /api/auth/me` `{ first_name?, last_name?, phone?, accent_color? }` | 🔑 | `200 { user }` (audita `PROFILE_UPDATED` solo si cambian nombre, apellidos o teléfono; el color no se audita) | `401`, `403 PASSWORD_CHANGE_REQUIRED`, `422` (campo no permitido, cuerpo vacío) |
 | `POST /api/auth/change-password` `{ current_password, new_password }` | 🔑 | `200 { token, expires_in, user }` | `400 INVALID_CURRENT_PASSWORD`, `400 PASSWORD_REUSED`, `422` |
 | `GET /api/auth/registration-info` | 🌐 | `200 { "enabled": true }` | — |
 | `POST /api/auth/register` | 🌐 | `201 { email, account_status: "PENDIENTE", message }` (sin token) | `403 REGISTRATION_DISABLED`, `409 EMAIL_ALREADY_EXISTS`, `422`, `429` (5 solicitudes por equipo cada 60 min) |
 
-`UserMe`: `{ id, email, first_name, last_name, phone, role, is_active, must_change_password, modules, last_login_at }`. `RegisterRequest`: `{ first_name, last_name, email, phone (10 dígitos), password, requested_modules: [], note?, accepts_confidentiality: true }`. La cuenta registrada queda `PENDIENTE` hasta que un ADMIN la aprueba (ADR-0008).
+`UserMe`: `{ id, email, first_name, last_name, phone, role, is_active, must_change_password, modules, last_login_at, accent_color }`. `accent_color` ∈ `CORAL` (predeterminado), `NARANJA`, `ROSA`, `MORADO`, `AZUL`, `TURQUESA`, `VERDE`, `GRAFITO`; en el PATCH, `null` regresa al predeterminado y otro valor → `422` «Elige uno de los colores disponibles.». `RegisterRequest`: `{ first_name, last_name, email, phone (10 dígitos), password, requested_modules: [], note?, accepts_confidentiality: true }`. La cuenta registrada queda `PENDIENTE` hasta que un ADMIN la aprueba (ADR-0008).
 
 ### 3.2 Usuarios (vigente — Fase 2, solo ADMIN)
 
